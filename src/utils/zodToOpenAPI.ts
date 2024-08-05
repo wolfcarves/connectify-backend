@@ -21,7 +21,7 @@ const getOpenAPIDocumentation = () => {
       title: 'Todo List Api',
       description: 'Todo List Api Description',
     },
-    servers: [{ url: 'v1' }, { url: 'v2' }],
+    servers: [{ url: 'v1' }],
   };
 
   return generator.generateDocument(apiConfig);

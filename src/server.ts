@@ -3,6 +3,7 @@ import express from 'express';
 import { renderRoutes, renderDocs } from '@/routes.ts';
 import { writeDocumentation } from '@/utils/zodToOpenAPI.ts';
 import cors from 'cors';
+import logger from '@/utils/logger.ts';
 
 const app = express();
 const port = process.env.PORT;
@@ -17,5 +18,5 @@ app.listen(port, () => {
   writeDocumentation();
   renderDocs(app);
 
-  console.log(`Server is listening on port ${port}`);
+  logger.info(`Server is listening on port ${port}`);
 });

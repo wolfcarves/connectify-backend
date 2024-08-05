@@ -1,5 +1,5 @@
 import { type Express } from 'express';
-import AuthRouter from './modules/auth/auth.routes.ts';
+import AuthRouter from './modules/auth/auth.route.ts';
 import SwaggerUI from 'swagger-ui-express';
 import OpenAPIDocs from './docs/openapi-docs.json';
 
