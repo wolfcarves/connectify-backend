@@ -1,15 +1,18 @@
 import 'dotenv/config';
 import express from 'express';
-import { renderRoutes, renderDocs } from './routes.ts';
-import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import z from 'zod';
-import { writeDocumentation } from './utils/zodToOpenAPI.ts';
+import { renderRoutes, renderDocs } from '@/routes.ts';
+import { writeDocumentation } from '@/utils/zodToOpenAPI.ts';
+import cors from 'cors';
 
 const app = express();
 const port = process.env.PORT;
 
+//middlewares
+app.use(cors({ origin: '*' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.listen(port, () => {
-  extendZodWithOpenApi(z);
   renderRoutes(app);
   writeDocumentation();
   renderDocs(app);

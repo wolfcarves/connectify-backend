@@ -2,22 +2,33 @@ import {
   OpenAPIRegistry,
   OpenApiGeneratorV3,
 } from '@asteasolutions/zod-to-openapi';
+import { OpenAPIObjectConfig } from '@asteasolutions/zod-to-openapi/dist/v3.0/openapi-generator.js';
 import * as fs from 'fs';
+import { z } from 'zod';
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 
-const registry = new OpenAPIRegistry();
+extendZodWithOpenApi(z);
+
+export const registry = new OpenAPIRegistry();
+
+const generator = new OpenApiGeneratorV3(registry.definitions);
 
 const getOpenAPIDocumentation = () => {
-  const generator = new OpenApiGeneratorV3(registry.definitions);
-
-  return generator.generateDocument({
+  const apiConfig: OpenAPIObjectConfig = {
     openapi: '3.0.0',
     info: {
       version: '1.0.0',
       title: 'Todo List Api',
       description: 'Todo List Api Description',
     },
-    servers: [{ url: 'v1' }],
-  });
+    servers: [{ url: 'v1' }, { url: 'v2' }],
+  };
+
+  return generator.generateDocument(apiConfig);
+};
+
+export const generateComponents = () => {
+  return generator.generateComponents();
 };
 
 export const writeDocumentation = () => {

@@ -6,7 +6,7 @@ export const loginUser = (req: Request, res: Response) => {
   });
 };
 
-export const signUpUser = (req: Request, res: Response) => {
+export const signUpUser = async (req: Request, res: Response) => {
   res.status(200).json({
     message: 'Signup login successfully!',
   });
