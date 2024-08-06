@@ -5,7 +5,7 @@ export const userSchema = registry.register(
   'Object',
   z
     .object({
-      email: z.string().openapi('email'),
+      email: z.string().email().openapi('email'),
       username: z.string().openapi('username'),
       password: z.string().openapi('password'),
     })

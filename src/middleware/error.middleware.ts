@@ -46,8 +46,6 @@ export const errorHandler = (
   const stack = err.stack;
   const validationError = err.validationErrors;
 
-  console.log(validationError);
-
   res.status(statusCode).json({
     error: {
       message,
