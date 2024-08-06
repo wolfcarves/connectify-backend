@@ -21,6 +21,7 @@
     "express-async-handler": "^1.2.0",
     "lucia": "^3.2.0",
     "swagger-ui-express": "^5.0.1",
+    "winston": "^3.13.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -31,7 +32,6 @@
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
     "tsx": "^4.16.5",
-    "typescript-transform-paths": "^3.4.7",
-    "winston": "^3.13.1"
+    "typescript-transform-paths": "^3.4.7"
   }
 }

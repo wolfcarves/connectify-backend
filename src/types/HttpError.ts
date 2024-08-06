@@ -1,5 +1,8 @@
+import { ZodValidation } from './ZodValidation.ts';
+
 export class HttpError extends Error {
   statusCode: number;
+  validationErrors?: ZodValidation;
 
   constructor(message: string, statusCode: number) {
     super(message);
