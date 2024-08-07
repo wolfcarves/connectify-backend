@@ -4,7 +4,12 @@ import { HttpError } from '@/types/HttpError.ts';
 import { ZodError } from 'zod';
 import type { Request, Response, NextFunction } from 'express';
 
-export const zodErrorHandler = (err: HttpError, _req: Request, _res: Response, next: NextFunction) => {
+export const zodErrorHandler = (
+	err: HttpError,
+	_req: Request,
+	_res: Response,
+	next: NextFunction,
+) => {
 	if (err instanceof ZodError) {
 		const zodError = new HttpError(err.message, err.statusCode);
 
@@ -18,7 +23,12 @@ export const zodErrorHandler = (err: HttpError, _req: Request, _res: Response, n
 	}
 };
 
-export const errorHandler = (err: HttpError, _req: Request, res: Response, _next: NextFunction) => {
+export const errorHandler = (
+	err: HttpError,
+	_req: Request,
+	res: Response,
+	_next: NextFunction,
+) => {
 	const statusCode = err.statusCode || 500;
 	const message = err.message || 'Internal Server Error';
 	const stack = err.stack;
@@ -34,7 +44,11 @@ export const errorHandler = (err: HttpError, _req: Request, res: Response, _next
 	});
 };
 
-export const notFoundHandler = (_req: Request, res: Response, _next: NextFunction) => {
+export const notFoundHandler = (
+	_req: Request,
+	res: Response,
+	_next: NextFunction,
+) => {
 	const message = 'Route not found';
 	const statusCode = 404;
 

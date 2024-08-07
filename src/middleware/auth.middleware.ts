@@ -2,7 +2,11 @@ import { ForbiddenException } from '@/exceptions/ForbiddenException.ts';
 import { lucia } from '@/lib/auth.ts';
 import { NextFunction, Request, Response } from 'express';
 
-export const validateSession = async (req: Request, res: Response, next: NextFunction) => {
+export const validateSession = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
 	const sessionId = lucia.readSessionCookie(req.headers.cookie ?? '');
 
 	if (!sessionId) {
@@ -15,11 +19,17 @@ export const validateSession = async (req: Request, res: Response, next: NextFun
 	const { session, user } = await lucia.validateSession(sessionId);
 
 	if (session && session?.fresh) {
-		res.appendHeader('Set-Cookie', lucia.createSessionCookie(session.id).serialize());
+		res.appendHeader(
+			'Set-Cookie',
+			lucia.createSessionCookie(session.id).serialize(),
+		);
 	}
 
 	if (!session) {
-		res.appendHeader('Set-Cookie', lucia.createBlankSessionCookie().serialize());
+		res.appendHeader(
+			'Set-Cookie',
+			lucia.createBlankSessionCookie().serialize(),
+		);
 	}
 
 	res.locals.user = user;
@@ -28,7 +38,11 @@ export const validateSession = async (req: Request, res: Response, next: NextFun
 	return next();
 };
 
-export const requireAuth = (_req: Request, res: Response, next: NextFunction) => {
+export const requireAuth = (
+	_req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
 	const user = res.locals.user;
 
 	if (!user) throw new ForbiddenException('Not Authorized');
