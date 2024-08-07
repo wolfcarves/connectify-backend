@@ -1,3 +1,3 @@
 export type ZodValidation = {
-  [key: string]: string[] | undefined;
+	[key: string]: string[] | undefined;
 };

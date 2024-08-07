@@ -1,7 +1,7 @@
 {
-  "verbose": true,
-  "watch": ["src"],
-  "ext": "js,ts",
-  "ignore": ["src/**/*.spec.ts", "**/*/*.test.ts"],
-  "exec": "tsx src/server.ts"
+	"verbose": true,
+	"watch": ["src"],
+	"ext": "js,ts",
+	"ignore": ["src/**/*.spec.ts", "**/*/*.test.ts"],
+	"exec": "tsx src/server.ts"
 }
