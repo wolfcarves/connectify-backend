@@ -2,6 +2,6 @@
 	"verbose": true,
 	"watch": ["src"],
 	"ext": "js,ts",
-	"ignore": ["src/**/*.spec.ts", "**/*/*.test.ts"],
-	"exec": "tsx src/server.ts"
+	"ignore": ["src/**/*.spec", "**/*/*.test"],
+	"exec": "tsx src/server"
 }

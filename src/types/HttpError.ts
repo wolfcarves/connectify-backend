@@ -1,4 +1,4 @@
-import { ZodValidation } from './ZodValidation.ts';
+import { ZodValidation } from './ZodValidation';
 
 export class HttpError extends Error {
 	statusCode: number;

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { registry } from '@/lib/zodToOpenAPI.ts';
+import { registry } from '@/lib/zodToOpenAPI';
 
 export const serverErrorSchema = registry.register(
 	'ServerError',

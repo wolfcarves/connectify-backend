@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { registry } from '@/lib/zodToOpenAPI.ts';
-import { userSchema } from '../user/user.schema.ts';
+import { registry } from '@/lib/zodToOpenAPI';
+import { userSchema } from '../user/user.schema';
 
 export const userLoginInputSchema = registry.register(
 	'UserLoginInput',

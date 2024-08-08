@@ -1,5 +1,5 @@
-import { ForbiddenException } from '@/exceptions/ForbiddenException.ts';
-import { lucia } from '@/lib/auth.ts';
+import { ForbiddenException } from '@/exceptions/ForbiddenException';
+import { lucia } from '@/lib/auth';
 import { NextFunction, Request, Response } from 'express';
 
 export const validateSession = async (

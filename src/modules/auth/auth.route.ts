@@ -1,7 +1,7 @@
 import express from 'express';
-import * as AuthController from './auth.controller.ts';
-import { requireAuth } from '@/middleware/auth.middleware.ts';
-import * as AuthDocumentation from './auth.docs.ts';
+import * as AuthController from './auth.controller';
+import { requireAuth } from '@/middleware/auth.middleware';
+import * as AuthDocumentation from './auth.docs';
 
 const AuthRouter = express.Router();
 

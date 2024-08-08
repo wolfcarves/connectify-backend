@@ -3,15 +3,15 @@ import {
 	userLoginInputSchema,
 	userSignupInputSchema,
 	UserSignupInput,
-} from './auth.schema.ts';
-import asyncHandler from '../../utils/asyncHandler.ts';
-import * as authService from './auth.service.ts';
-import { db } from '@/db/index.ts';
-import { userTable } from '@/models/userTable.ts';
-import { BadRequestException } from '@/exceptions/BadRequestException.ts';
-import hashPassword from '@/utils/hashPassword.ts';
-import { lucia } from '@/lib/auth.ts';
-import { ForbiddenException } from '@/exceptions/ForbiddenException.ts';
+} from './auth.schema';
+import asyncHandler from '../../utils/asyncHandler';
+import * as authService from './auth.service';
+import { db } from '@/db/index';
+import { userTable } from '@/models/userTable';
+import { BadRequestException } from '@/exceptions/BadRequestException';
+import hashPassword from '@/utils/hashPassword';
+import { lucia } from '@/lib/auth';
+import { ForbiddenException } from '@/exceptions/ForbiddenException';
 
 export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 	const { username, password } = await userLoginInputSchema.parseAsync(

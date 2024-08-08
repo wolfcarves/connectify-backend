@@ -1,4 +1,4 @@
-import { userLoginResponseSchema } from '@/modules/auth/auth.schema.ts';
+import { userLoginResponseSchema } from '@/modules/auth/auth.schema';
 
 export const commonErrorResponse = {
 	500: {

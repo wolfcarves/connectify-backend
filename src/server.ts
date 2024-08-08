@@ -1,20 +1,20 @@
 import 'dotenv/config';
 import 'express-async-errors';
 import express from 'express';
-import { renderRoutes, renderDocs } from '@/routes.ts';
+import { renderRoutes, renderDocs } from './routes';
 import cors from 'cors';
-import logger from '@/utils/logger.ts';
+import logger from '@/utils/logger';
 import {
 	zodErrorHandler,
 	errorHandler,
 	notFoundHandler,
-} from './middleware/error.middleware.ts';
-import { corsOptionsDelegate } from './config/corsOptions.ts';
-import { validateSession } from './middleware/auth.middleware.ts';
-import { writeDocumentation } from './lib/zodToOpenAPI.ts';
+} from './middleware/error.middleware';
+import { corsOptionsDelegate } from './config/corsOptions';
+import { validateSession } from './middleware/auth.middleware';
+import { writeDocumentation } from './lib/zodToOpenAPI';
 
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 5000;
 
 app.options('*', cors(corsOptionsDelegate));
 app.use(express.json());

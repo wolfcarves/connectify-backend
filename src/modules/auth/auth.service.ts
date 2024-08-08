@@ -1,5 +1,5 @@
-import { db } from '@/db/index.ts';
-import { userTable } from '@/models/userTable.ts';
+import { db } from '@/db/index';
+import { userTable } from '@/models/userTable';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 

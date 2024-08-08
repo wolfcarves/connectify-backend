@@ -1,4 +1,4 @@
-import { HttpError } from '@/types/HttpError.ts';
+import { HttpError } from '@/types/HttpError';
 
 export class ServerInternalException extends HttpError {
 	constructor(message: string = 'Server Internal Error') {

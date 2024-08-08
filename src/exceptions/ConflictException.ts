@@ -1,4 +1,4 @@
-import { HttpError } from '@/types/HttpError.ts';
+import { HttpError } from '@/types/HttpError';
 
 export class ConflictException extends HttpError {
 	constructor(message: string = 'Conflict') {

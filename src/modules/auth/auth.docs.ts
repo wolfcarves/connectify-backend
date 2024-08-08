@@ -1,10 +1,10 @@
-import { registry } from '@/lib/zodToOpenAPI.ts';
+import { registry } from '@/lib/zodToOpenAPI';
 import {
 	userLoginInputSchema,
 	userLoginResponseSchema,
 	userSignupInputSchema,
-} from './auth.schema.ts';
-import { commonErrorResponse } from '@/helper/commonErrorResponse.ts';
+} from './auth.schema';
+import { commonErrorResponse } from '@/helper/commonErrorResponse';
 
 export const loginUserDocs = () => {
 	registry.registerPath({

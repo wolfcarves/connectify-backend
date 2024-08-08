@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-import { HttpError } from '@/types/HttpError.ts';
+import { HttpError } from '@/types/HttpError';
 import { ZodError } from 'zod';
 import type { Request, Response, NextFunction } from 'express';
 

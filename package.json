@@ -5,7 +5,10 @@
 	"type": "module",
 	"main": "index.js",
 	"scripts": {
-		"dev": "nodemon"
+		"start": "npm run build && node dist/server.js",
+		"dev": "nodemon",
+		"build": "rimraf dist && tsc && tsc-alias && exit 0",
+		"type-check": "npx tsc --noEmit false"
 	},
 	"keywords": [],
 	"author": "",
@@ -26,6 +29,8 @@
 		"pg": "^8.12.0",
 		"postgres": "^3.4.4",
 		"swagger-ui-express": "^5.0.1",
+		"ts-patch": "^3.2.1",
+		"typescript-transform-paths": "^3.4.10",
 		"winston": "^3.13.1",
 		"zod": "^3.23.8"
 	},
@@ -37,8 +42,9 @@
 		"eslint": "^9.8.0",
 		"nodemon": "^3.1.4",
 		"prettier": "^3.3.3",
+		"rimraf": "^6.0.1",
 		"ts-node": "^10.9.2",
-		"tsx": "^4.16.5",
-		"typescript-transform-paths": "^3.4.7"
+		"tsc-alias": "^1.8.10",
+		"tsx": "^4.16.5"
 	}
 }
