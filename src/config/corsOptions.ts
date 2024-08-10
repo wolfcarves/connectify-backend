@@ -1,4 +1,4 @@
-import { CorsOptionsDelegate } from 'cors';
+import type { CorsOptionsDelegate } from 'cors';
 
 const whitelist = ['http://localhost:3000'];
 

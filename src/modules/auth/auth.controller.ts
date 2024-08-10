@@ -1,8 +1,9 @@
 import type { Request, Response } from 'express';
+import type {
+	UserSignupInput} from './auth.schema';
 import {
 	userLoginInputSchema,
-	userSignupInputSchema,
-	UserSignupInput,
+	userSignupInputSchema
 } from './auth.schema';
 import asyncHandler from '../../utils/asyncHandler';
 import * as authService from './auth.service';
@@ -25,7 +26,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 		throw new BadRequestException(errorMessage);
 	}
 
-	const session = await lucia.createSession(user.id, {});
+	const session = await lucia.createSession(1, {});
 	const sessionCookie = lucia.createSessionCookie(session.id).serialize();
 	const isPasswordCorrect = await authService.validatePassword(
 		password,
@@ -36,12 +37,14 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 		throw new BadRequestException(errorMessage);
 	}
 
-	res.status(200)
-		.appendHeader('Set-Cookie', sessionCookie)
-		.appendHeader('Location', '/')
-		.json({
-			message: 'Login successfully',
-		});
+	res.cookie('auth-session', sessionCookie, {
+		path: '/',
+		httpOnly: true,
+	});
+
+	res.status(200).json({
+		message: 'Login successfully',
+	});
 });
 
 export const signUpUser = asyncHandler(

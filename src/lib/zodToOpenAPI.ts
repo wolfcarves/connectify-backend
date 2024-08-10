@@ -2,7 +2,7 @@ import {
 	OpenAPIRegistry,
 	OpenApiGeneratorV3,
 } from '@asteasolutions/zod-to-openapi';
-import { OpenAPIObjectConfig } from '@asteasolutions/zod-to-openapi/dist/v3.0/openapi-generator.js';
+import type { OpenAPIObjectConfig } from '@asteasolutions/zod-to-openapi/dist/v3.0/openapi-generator.js';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import * as fs from 'fs';

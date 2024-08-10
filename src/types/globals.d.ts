@@ -1,4 +1,4 @@
-import { lucia } from '@/lib/auth';
+import type { lucia } from '@/lib/auth';
 
 interface User {
 	id: number;
