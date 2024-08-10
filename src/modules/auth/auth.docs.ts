@@ -2,12 +2,19 @@ import { registry } from '@/lib/zodToOpenAPI';
 import {
 	userLoginInputSchema,
 	userLoginResponseSchema,
-	userSignupInputSchema,
+	userSignUpInputSchema,
+	userSignUpResponseSchema,
 } from './auth.schema';
-import { commonErrorResponse } from '@/helper/commonErrorResponse';
+import {
+	conflictErrorResponse,
+	serverErrorResponse,
+	unauthorizedErrorResponse,
+	validationErrorResponse,
+} from '@/helper/commonErrorResponse';
 
 export const loginUserDocs = () => {
 	registry.registerPath({
+		tags: ['Authentication'],
 		method: 'post',
 		path: '/login',
 		summary: 'Login User',
@@ -27,28 +34,38 @@ export const loginUserDocs = () => {
 					},
 				},
 			},
-			...commonErrorResponse,
+			...unauthorizedErrorResponse,
+			...conflictErrorResponse,
+			...serverErrorResponse,
 		},
 	});
 };
 
 export const signUpUserDocs = () => {
 	registry.registerPath({
+		tags: ['Authentication'],
 		method: 'post',
 		path: '/signup',
 		summary: 'Sign Up User',
 		request: {
 			body: {
 				content: {
-					'application/json': { schema: userSignupInputSchema },
+					'application/json': { schema: userSignUpInputSchema },
 				},
 			},
 		},
 		responses: {
 			200: {
 				description: 'Signup successfully.',
+				content: {
+					'application/json': {
+						schema: userSignUpResponseSchema,
+					},
+				},
 			},
-			...commonErrorResponse,
+			...validationErrorResponse,
+			...conflictErrorResponse,
+			...serverErrorResponse,
 		},
 	});
 };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import 'dotenv/config';
 
 import { HttpError } from '@/types/HttpError';
@@ -13,9 +14,9 @@ export const zodErrorHandler = (
 	if (err instanceof ZodError) {
 		const zodError = new HttpError(err.message, err.statusCode);
 
-		zodError.message = 'Validation Error!!!';
+		zodError.message = 'Validation Error';
 		zodError.statusCode = 400;
-		zodError.validationErrors = err.formErrors.fieldErrors;
+		zodError.validationErrors = err.issues;
 
 		next(zodError);
 	} else {

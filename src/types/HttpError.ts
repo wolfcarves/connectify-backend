@@ -1,8 +1,8 @@
-import type { ZodValidation } from './ZodValidation';
+import type { ZodIssue } from 'zod';
 
 export class HttpError extends Error {
 	statusCode: number;
-	validationErrors?: ZodValidation;
+	validationErrors?: ZodIssue[];
 
 	constructor(message: string, statusCode: number) {
 		super(message);

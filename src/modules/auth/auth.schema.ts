@@ -24,7 +24,7 @@ export const userLoginResponseSchema = registry.register(
 	}),
 );
 
-export const userSignupInputSchema = registry.register(
+export const userSignUpInputSchema = registry.register(
 	'UserSignUpInput',
 	userSchema
 		.extend({
@@ -36,4 +36,11 @@ export const userSignupInputSchema = registry.register(
 		}),
 );
 
-export type UserSignupInput = z.infer<typeof userSignupInputSchema>;
+export type UserSignUpInput = z.infer<typeof userSignUpInputSchema>;
+
+export const userSignUpResponseSchema = registry.register(
+	'UserSignupResponse',
+	z.object({
+		message: z.string(),
+	}),
+);

@@ -8,7 +8,8 @@
 		"start": "npm run build && node dist/server.js",
 		"dev": "nodemon",
 		"build": "rimraf dist && tsc && tsc-alias && exit 0",
-		"type-check": "npx tsc --noEmit false"
+		"type-check": "npx tsc --noEmit false",
+		"studio": "npx drizzle-kit studio"
 	},
 	"keywords": [],
 	"author": "",

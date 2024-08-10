@@ -1,10 +1,6 @@
 import type { Request, Response } from 'express';
-import type {
-	UserSignupInput} from './auth.schema';
-import {
-	userLoginInputSchema,
-	userSignupInputSchema
-} from './auth.schema';
+import type { UserSignUpInput } from './auth.schema';
+import { userLoginInputSchema, userSignUpInputSchema } from './auth.schema';
 import asyncHandler from '../../utils/asyncHandler';
 import * as authService from './auth.service';
 import { db } from '@/db/index';
@@ -13,6 +9,7 @@ import { BadRequestException } from '@/exceptions/BadRequestException';
 import hashPassword from '@/utils/hashPassword';
 import { lucia } from '@/lib/auth';
 import { ForbiddenException } from '@/exceptions/ForbiddenException';
+import { ConflictException } from '@/exceptions/ConflictException';
 
 export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 	const { username, password } = await userLoginInputSchema.parseAsync(
@@ -49,21 +46,21 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 
 export const signUpUser = asyncHandler(
 	async (
-		req: Request<never, never, UserSignupInput, never>,
+		req: Request<never, never, UserSignUpInput, never>,
 		res: Response,
 	) => {
 		const { username, email, password } =
-			await userSignupInputSchema.parseAsync(req.body);
+			await userSignUpInputSchema.parseAsync(req.body);
 
 		const usernameResults = await authService.findUserByUsername(username);
 		const emailResults = await authService.findUserByEmail(email);
 
 		if (usernameResults !== undefined) {
-			throw new BadRequestException('Username already exists');
+			throw new ConflictException('Username already exists');
 		}
 
 		if (emailResults !== undefined) {
-			throw new BadRequestException('Email already exists');
+			throw new ConflictException('Email already exists');
 		}
 
 		const hashedPassword = await hashPassword(password);

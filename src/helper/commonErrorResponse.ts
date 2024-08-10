@@ -1,11 +1,49 @@
-import { userLoginResponseSchema } from '@/modules/auth/auth.schema';
+import {
+	conflictErrorSchema,
+	serverErrorSchema,
+	unauthorizedErrorSchema,
+	validationErrorSchema,
+} from '@/schema/errorSchema';
 
-export const commonErrorResponse = {
+export const validationErrorResponse = {
+	400: {
+		description: 'Validation Error',
+		content: {
+			'application/json': {
+				schema: validationErrorSchema,
+			},
+		},
+	},
+};
+
+export const unauthorizedErrorResponse = {
+	401: {
+		description: 'Unauthorized',
+		content: {
+			'application/json': {
+				schema: unauthorizedErrorSchema,
+			},
+		},
+	},
+};
+
+export const conflictErrorResponse = {
+	409: {
+		description: 'Conflict',
+		content: {
+			'application/json': {
+				schema: conflictErrorSchema,
+			},
+		},
+	},
+};
+
+export const serverErrorResponse = {
 	500: {
 		description: 'Server Internal Error.',
 		content: {
 			'application/json': {
-				schema: userLoginResponseSchema,
+				schema: serverErrorSchema,
 			},
 		},
 	},
