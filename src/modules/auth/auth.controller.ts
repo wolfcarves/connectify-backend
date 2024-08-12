@@ -9,7 +9,7 @@ import { BadRequestException } from '@/exceptions/BadRequestException';
 import hashPassword from '@/utils/hashPassword';
 import { lucia } from '@/lib/auth';
 import { ForbiddenException } from '@/exceptions/ForbiddenException';
-import { ConflictException } from '@/exceptions/ConflictException';
+import { ZodError } from '@/exceptions/ZodError';
 
 export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 	const { username, password } = await userLoginInputSchema.parseAsync(
@@ -55,13 +55,23 @@ export const signUpUser = asyncHandler(
 		const usernameResults = await authService.findUserByUsername(username);
 		const emailResults = await authService.findUserByEmail(email);
 
+		const errors: ZodError['validationErrors'] = [];
+
 		if (usernameResults !== undefined) {
-			throw new ConflictException('Username already exists');
+			errors.push({
+				message: 'Username already exists',
+				path: ['username'],
+			});
 		}
 
 		if (emailResults !== undefined) {
-			throw new ConflictException('Email already exists');
+			errors.push({
+				message: 'Email already exists',
+				path: ['email'],
+			});
 		}
+
+		if (errors.length > 0) throw new ZodError(errors);
 
 		const hashedPassword = await hashPassword(password);
 

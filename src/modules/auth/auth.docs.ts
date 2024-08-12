@@ -16,7 +16,8 @@ export const loginUserDocs = () => {
 	registry.registerPath({
 		tags: ['Authentication'],
 		method: 'post',
-		path: '/login',
+		path: '/auth/login',
+		operationId: 'postLoginUser',
 		summary: 'Login User',
 		request: {
 			body: {
@@ -45,7 +46,8 @@ export const signUpUserDocs = () => {
 	registry.registerPath({
 		tags: ['Authentication'],
 		method: 'post',
-		path: '/signup',
+		path: '/auth/signup',
+		operationId: 'postSignUpUser',
 		summary: 'Sign Up User',
 		request: {
 			body: {

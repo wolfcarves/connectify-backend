@@ -9,21 +9,21 @@ import {
 	errorHandler,
 	notFoundHandler,
 } from './middleware/error.middleware';
-import { corsOptionsDelegate } from './config/corsOptions';
 import { validateSession } from './middleware/auth.middleware';
 import { writeDocumentation } from './lib/zodToOpenAPI';
+import { corsOptions } from './config/corsOptions';
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.options('*', cors(corsOptionsDelegate));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(validateSession);
 
 renderRoutes(app);
-writeDocumentation();
+writeDocumentation(app);
 renderDocs(app);
 
 app.use(zodErrorHandler);

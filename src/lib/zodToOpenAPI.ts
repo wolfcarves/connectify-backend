@@ -1,3 +1,6 @@
+import 'dotenv/config';
+
+import type { Request, Response, Express } from 'express';
 import {
 	OpenAPIRegistry,
 	OpenApiGeneratorV3,
@@ -21,21 +24,30 @@ const getOpenAPIDocumentation = () => {
 			title: 'Todo List Api',
 			description: 'Todo List Api Description',
 		},
-		servers: [{ url: 'v1' }],
+		servers: [
+			{
+				url:
+					process.env.NODE_ENV === 'production'
+						? 'http://localhost:5000'
+						: 'http://localhost:5000',
+			},
+		],
 	};
 
 	return generator.generateDocument(apiConfig);
 };
 
-export const writeDocumentation = () => {
+export const writeDocumentation = (app: Express) => {
 	const docs = getOpenAPIDocumentation();
-	const fileContent = JSON.stringify(docs);
+	const fileContent = docs;
+
+	app.get('/spec.json', (_req: Request, res: Response) => {
+		res.status(200).json(fileContent);
+	});
 
 	fs.writeFileSync(
 		`${process.cwd()}/src/docs/openapi-docs.json`,
-		fileContent,
-		{
-			encoding: 'utf-8',
-		},
+		JSON.stringify(fileContent),
+		{ encoding: 'utf-8' },
 	);
 };

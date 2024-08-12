@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import 'dotenv/config';
 
-import { HttpError } from '@/types/HttpError';
+import { HttpError } from '@/exceptions/HttpError';
 import { ZodError } from 'zod';
 import type { Request, Response, NextFunction } from 'express';
 
@@ -33,14 +33,14 @@ export const errorHandler = (
 	const statusCode = err.statusCode || 500;
 	const message = err.message || 'Internal Server Error';
 	const stack = err.stack;
-	const validationError = err.validationErrors;
+	const validationErrors = err.validationErrors;
 
 	res.status(statusCode).json({
 		error: {
 			message,
 			statusCode,
-			validationError,
-			stack: process.env.NODE_ENV === 'development' ? stack : '',
+			validationErrors,
+			stack: process.env.NODE_ENV === 'development' ? stack : undefined,
 		},
 	});
 };

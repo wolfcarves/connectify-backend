@@ -1,12 +1,14 @@
-import type { CorsOptionsDelegate } from 'cors';
+import { UnauthorizedException } from '@/exceptions/UnauthorizedException';
+import type { CorsOptions } from 'cors';
 
 const whitelist = ['http://localhost:3000'];
 
-export const corsOptionsDelegate: CorsOptionsDelegate = (req, callback) => {
-	let corsOptions;
-
-	if (whitelist.indexOf('Origin') !== -1) corsOptions = { origin: true };
-	else corsOptions = { origin: false };
-
-	callback(null, corsOptions);
+export const corsOptions: CorsOptions = {
+	origin: (origin, callback) => {
+		if (whitelist.indexOf(origin!) !== -1 || !origin) {
+			callback(null, true);
+		} else {
+			callback(new UnauthorizedException('Not allowed by CORS'));
+		}
+	},
 };

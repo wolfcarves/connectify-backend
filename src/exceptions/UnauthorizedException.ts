@@ -1,4 +1,4 @@
-import { HttpError } from '@/types/HttpError';
+import { HttpError } from '@/exceptions/HttpError';
 
 export class UnauthorizedException extends HttpError {
 	constructor(message: string = 'Unauthorized') {
