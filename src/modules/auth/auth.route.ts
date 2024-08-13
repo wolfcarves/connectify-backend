@@ -11,6 +11,7 @@ AuthRouter.post('/login', AuthController.loginUser);
 AuthDocumentation.signUpUserDocs();
 AuthRouter.post('/signup', AuthController.signUpUser);
 
-AuthRouter.post('/profile', requireAuth, AuthController.getUserProfile);
+AuthDocumentation.getCurrentSessionDocs();
+AuthRouter.get('/session', requireAuth, AuthController.getCurrentSession);
 
 export default AuthRouter;

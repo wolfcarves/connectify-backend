@@ -33,6 +33,18 @@ export const findUserById = async (userId: number) => {
 	return user[0];
 };
 
+export const createUser = async (
+	username: string,
+	email: string,
+	password: string,
+) => {
+	return await db.insert(userTable).values({
+		username: username.toLowerCase(),
+		email: email.toLowerCase(),
+		password,
+	});
+};
+
 export const validatePassword = async (
 	password: string,
 	hashedPassword: string,

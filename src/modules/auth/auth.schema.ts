@@ -17,13 +17,6 @@ export const userLoginInputSchema = registry.register(
 	}),
 );
 
-export const userLoginResponseSchema = registry.register(
-	'UserLoginResponse',
-	z.object({
-		message: z.string(),
-	}),
-);
-
 export const userSignUpInputSchema = registry.register(
 	'UserSignUpInput',
 	userSchema
@@ -38,9 +31,9 @@ export const userSignUpInputSchema = registry.register(
 
 export type UserSignUpInput = z.infer<typeof userSignUpInputSchema>;
 
-export const userSignUpResponseSchema = registry.register(
-	'UserSignupResponse',
+export const userSessionSchema = registry.register(
+	'Session',
 	z.object({
-		message: z.string(),
+		data: userSchema.omit({ password: true }).extend({ id: z.number() }),
 	}),
 );

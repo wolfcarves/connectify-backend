@@ -1,10 +1,10 @@
 import { registry } from '@/lib/zodToOpenAPI';
 import {
 	userLoginInputSchema,
-	userLoginResponseSchema,
+	userSessionSchema,
 	userSignUpInputSchema,
-	userSignUpResponseSchema,
 } from './auth.schema';
+import { successResponseSchema } from '@/schema/responseSchema';
 import {
 	conflictErrorResponse,
 	serverErrorResponse,
@@ -28,10 +28,10 @@ export const loginUserDocs = () => {
 		},
 		responses: {
 			200: {
-				description: 'Login successfully.',
+				description: 'OK',
 				content: {
 					'application/json': {
-						schema: userLoginResponseSchema,
+						schema: successResponseSchema,
 					},
 				},
 			},
@@ -58,15 +58,38 @@ export const signUpUserDocs = () => {
 		},
 		responses: {
 			200: {
-				description: 'Signup successfully.',
+				description: 'OK',
 				content: {
 					'application/json': {
-						schema: userSignUpResponseSchema,
+						schema: successResponseSchema,
 					},
 				},
 			},
 			...validationErrorResponse,
 			...conflictErrorResponse,
+			...serverErrorResponse,
+		},
+	});
+};
+
+export const getCurrentSessionDocs = () => {
+	registry.registerPath({
+		tags: ['Authentication'],
+		method: 'get',
+		path: '/auth/session',
+		operationId: 'getCurrentSession',
+		summary: 'Get User Session',
+
+		responses: {
+			200: {
+				description: 'OK',
+				content: {
+					'application/json': {
+						schema: userSessionSchema,
+					},
+				},
+			},
+			...unauthorizedErrorResponse,
 			...serverErrorResponse,
 		},
 	});

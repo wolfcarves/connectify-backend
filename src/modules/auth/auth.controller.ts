@@ -1,11 +1,8 @@
 import type { Request, Response } from 'express';
 import type { UserSignUpInput } from './auth.schema';
 import { userLoginInputSchema, userSignUpInputSchema } from './auth.schema';
-import asyncHandler from '../../utils/asyncHandler';
+import asyncHandler from '@/utils/asyncHandler';
 import * as authService from './auth.service';
-import { db } from '@/db/index';
-import { userTable } from '@/models/userTable';
-import { BadRequestException } from '@/exceptions/BadRequestException';
 import hashPassword from '@/utils/hashPassword';
 import { lucia } from '@/lib/auth';
 import { ForbiddenException } from '@/exceptions/ForbiddenException';
@@ -17,31 +14,37 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 	);
 
 	const user = await authService.findUserByUsername(username);
-	const errorMessage = 'Invalid username or password';
+
+	const error: ZodError['validationErrors'] = [
+		{
+			message: 'Invalid username or password',
+			path: ['username', 'password'],
+		},
+	];
 
 	if (!user) {
-		throw new BadRequestException(errorMessage);
+		throw new ZodError(error);
 	}
 
-	const session = await lucia.createSession(1, {});
+	const session = await lucia.createSession(user.id, {});
 	const sessionCookie = lucia.createSessionCookie(session.id).serialize();
+
 	const isPasswordCorrect = await authService.validatePassword(
 		password,
 		user.password!,
 	);
 
 	if (!isPasswordCorrect) {
-		throw new BadRequestException(errorMessage);
+		throw new ZodError(error);
 	}
 
-	res.cookie('auth-session', sessionCookie, {
-		path: '/',
-		httpOnly: true,
-	});
-
-	res.status(200).json({
-		message: 'Login successfully',
-	});
+	res.status(200)
+		.appendHeader('Set-Cookie', sessionCookie)
+		.appendHeader('Location', '/')
+		.json({
+			success: true,
+			message: 'Login successful',
+		});
 });
 
 export const signUpUser = asyncHandler(
@@ -75,19 +78,16 @@ export const signUpUser = asyncHandler(
 
 		const hashedPassword = await hashPassword(password);
 
-		await db.insert(userTable).values({
-			username,
-			email,
-			password: hashedPassword,
-		});
+		await authService.createUser(username, email, hashedPassword);
 
 		res.status(201).json({
+			success: true,
 			message: 'Signup login successfully!',
 		});
 	},
 );
 
-export const getUserProfile = async (_req: Request, res: Response) => {
+export const getCurrentSession = async (_req: Request, res: Response) => {
 	const userId = res.locals.user?.id;
 
 	if (!userId) {
@@ -96,7 +96,10 @@ export const getUserProfile = async (_req: Request, res: Response) => {
 
 	const user = await authService.findUserById(userId!);
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const { password, ...session } = user;
+
 	res.status(200).json({
-		data: user,
+		data: session,
 	});
 };
