@@ -4,16 +4,24 @@ import { registry } from '@/lib/zodToOpenAPI';
 export const validationErrorSchema = registry.register(
 	'ValidationError',
 	z.object({
-		message: z.string().openapi({ example: 'Conflict' }),
-		statusCode: z.number().openapi({ example: 400 }),
-		validationError: z.array(
+		message: z.string(),
+		statusCode: z.number(),
+		validationErrors: z.array(
 			z.object({
-				validation: z.string(),
 				code: z.string(),
+				validation: z.string(),
 				message: z.string(),
 				path: z.array(z.string()),
 			}),
 		),
+	}),
+);
+
+export const notFoundErrorSchema = registry.register(
+	'NotFoundError',
+	z.object({
+		message: z.string().openapi({ example: 'Not Found' }),
+		statusCode: z.number().openapi({ example: 404 }),
 	}),
 );
 

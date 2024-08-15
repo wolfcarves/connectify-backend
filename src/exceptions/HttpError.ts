@@ -1,6 +1,4 @@
-import type { ZodIssue as BaseZodIssue } from 'zod';
-
-export type ZodIssue = Omit<BaseZodIssue, 'code'>;
+import type { ZodIssue } from 'zod';
 
 export class HttpError extends Error {
 	statusCode: number;

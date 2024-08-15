@@ -16,7 +16,7 @@ export const loginUserDocs = () => {
 	registry.registerPath({
 		tags: ['Authentication'],
 		method: 'post',
-		path: '/auth/login',
+		path: '/api/v1/auth/login',
 		operationId: 'postLoginUser',
 		summary: 'Login User',
 		request: {
@@ -46,7 +46,7 @@ export const signUpUserDocs = () => {
 	registry.registerPath({
 		tags: ['Authentication'],
 		method: 'post',
-		path: '/auth/signup',
+		path: '/api/v1/auth/signup',
 		operationId: 'postSignUpUser',
 		summary: 'Sign Up User',
 		request: {
@@ -76,7 +76,7 @@ export const getCurrentSessionDocs = () => {
 	registry.registerPath({
 		tags: ['Authentication'],
 		method: 'get',
-		path: '/auth/session',
+		path: '/api/v1/auth/session',
 		operationId: 'getCurrentSession',
 		summary: 'Get User Session',
 

@@ -1,7 +1,19 @@
 import express from 'express';
-import { createPost } from './post.controller';
+import * as PostController from './post.controller';
 import { requireAuth } from '@/middleware/auth.middleware';
+import * as PostDocumentation from './post.docs';
 
 const PostRouter = express.Router();
 
-PostRouter.post('/create', requireAuth, createPost);
+PostDocumentation.createPostDocs();
+PostRouter.post('/', requireAuth, PostController.createPost);
+
+PostDocumentation.getUserPostDocs();
+PostRouter.get('/:postId', requireAuth, PostController.getUserPost);
+
+PostDocumentation.getUserPostsDocs();
+PostRouter.get('/all/:userId', requireAuth, PostController.getUserPosts);
+
+PostRouter.delete('/:postId', requireAuth, PostController.deletePost);
+
+export default PostRouter;

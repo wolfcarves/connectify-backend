@@ -1,12 +1,12 @@
 import type { Request, Response } from 'express';
 import type { UserSignUpInput } from './auth.schema';
 import { userLoginInputSchema, userSignUpInputSchema } from './auth.schema';
-import asyncHandler from '@/utils/asyncHandler';
 import * as authService from './auth.service';
 import hashPassword from '@/utils/hashPassword';
 import { lucia } from '@/lib/auth';
 import { ForbiddenException } from '@/exceptions/ForbiddenException';
 import { ZodError } from '@/exceptions/ZodError';
+import asyncHandler from 'express-async-handler';
 
 export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 	const { username, password } = await userLoginInputSchema.parseAsync(
@@ -87,19 +87,21 @@ export const signUpUser = asyncHandler(
 	},
 );
 
-export const getCurrentSession = async (_req: Request, res: Response) => {
-	const userId = res.locals.user?.id;
+export const getCurrentSession = asyncHandler(
+	async (_req: Request, res: Response) => {
+		const userId = res.locals.user?.id;
 
-	if (!userId) {
-		throw new ForbiddenException('No Authorization');
-	}
+		if (!userId) {
+			throw new ForbiddenException('No Authorization');
+		}
 
-	const user = await authService.findUserById(userId!);
+		const user = await authService.findUserById(userId!);
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const { password, ...session } = user;
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { password, ...session } = user;
 
-	res.status(200).json({
-		data: session,
-	});
-};
+		res.status(200).json({
+			data: session,
+		});
+	},
+);

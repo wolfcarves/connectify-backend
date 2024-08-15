@@ -27,6 +27,17 @@ export const unauthorizedErrorResponse = {
 	},
 };
 
+export const notFoundErrorResponse = {
+	401: {
+		description: 'Not Found',
+		content: {
+			'application/json': {
+				schema: unauthorizedErrorSchema,
+			},
+		},
+	},
+};
+
 export const conflictErrorResponse = {
 	409: {
 		description: 'Conflict',
