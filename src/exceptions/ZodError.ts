@@ -1,7 +1,7 @@
-import { HttpError, type ZodIssue } from './HttpError';
+import { HttpError, type ValidationErrors } from './HttpError';
 
 export class ZodError extends HttpError {
-	constructor(validationErrors?: ZodIssue[]) {
+	constructor(validationErrors?: ValidationErrors[]) {
 		super('Validation Error', 400, validationErrors);
 	}
 }

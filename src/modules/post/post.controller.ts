@@ -21,15 +21,14 @@ export const createPost = asyncHandler(
 	},
 );
 
-export const getUserPost = asyncHandler(async (req: Request, res: Response) => {
+export const getPost = asyncHandler(async (req: Request, res: Response) => {
 	const userId = Number(res.locals.user!.id);
 	const postId = Number(req.params.postId);
 
-	const findPostResponse = await postService.findOne(postId);
-	const post = findPostResponse?.[0];
+	const post = await postService.findOne(postId);
 
 	// allow user to view if he owns the post
-	const ableToView = post?.audience === 'private' && userId !== post?.userId;
+	const ableToView = post?.audience === 'private' && userId !== post?.user_id;
 
 	if (!post?.id) {
 		throw new NotFoundException('Post not found');
@@ -44,7 +43,7 @@ export const getUserPost = asyncHandler(async (req: Request, res: Response) => {
 	});
 });
 
-export const getUserPosts = asyncHandler(
+export const getPosts = asyncHandler(
 	async (
 		req: Request<{ userId: string }, never, never, never>,
 		res: Response,

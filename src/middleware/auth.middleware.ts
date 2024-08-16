@@ -45,7 +45,7 @@ export const requireAuth = (
 ) => {
 	const user = res.locals.user;
 
-	if (!user) throw new ForbiddenException('Not Authorized');
+	if (!user) throw new ForbiddenException('Forbidden to access resources');
 
 	next();
 };

@@ -20,7 +20,7 @@ export const postSchema = registry.register(
 		id: z.number(),
 		user_id: z.number(),
 		likes: z.number(),
-		commnets: z.number(),
+		comments: z.number(),
 		shares: z.number(),
 	}),
 );

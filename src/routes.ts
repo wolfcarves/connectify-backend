@@ -4,6 +4,7 @@ import SwaggerUI from 'swagger-ui-express';
 import AuthRouter from './modules/auth/auth.route';
 import HealthRouter from './modules/health/health.route';
 import PostRouter from './modules/post/post.route';
+import EngagementRouter from './modules/engagement/engagement.route';
 import express from 'express';
 
 const apiRouter = express.Router();
@@ -13,6 +14,7 @@ export const renderRoutes = (app: Express) => {
 	apiRouter.use('/auth', AuthRouter);
 	apiRouter.use('/health', HealthRouter);
 	apiRouter.use('/post', PostRouter);
+	apiRouter.use('/post', EngagementRouter);
 
 	app.use(apiPrefix, apiRouter);
 };

@@ -105,3 +105,19 @@ export const getCurrentSession = asyncHandler(
 		});
 	},
 );
+
+export const destroySession = asyncHandler(
+	async (_req: Request, res: Response) => {
+		const sessionId = String(res.locals.user?.id);
+
+		await lucia.invalidateSession(sessionId);
+
+		res.appendHeader(
+			'Set-Cookie',
+			lucia.createBlankSessionCookie().serialize(),
+		).json({
+			success: true,
+			message: 'Logout successful',
+		});
+	},
+);

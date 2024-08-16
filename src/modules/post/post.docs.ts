@@ -88,11 +88,9 @@ export const getUserPostsDocs = () => {
 				description: 'OK',
 				content: {
 					'application/json': {
-						schema: z.array(
-							z.object({
-								data: postSchema,
-							}),
-						),
+						schema: z.object({
+							data: z.array(postSchema),
+						}),
 					},
 				},
 			},

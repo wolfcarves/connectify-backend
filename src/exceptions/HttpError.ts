@@ -1,13 +1,15 @@
 import type { ZodIssue } from 'zod';
 
+export type ValidationErrors = Omit<ZodIssue, 'code'>;
+
 export class HttpError extends Error {
 	statusCode: number;
-	validationErrors?: ZodIssue[];
+	validationErrors?: ValidationErrors[];
 
 	constructor(
 		message: string,
 		statusCode: number,
-		validationErrors?: ZodIssue[],
+		validationErrors?: ValidationErrors[],
 	) {
 		super(message);
 		this.statusCode = statusCode;

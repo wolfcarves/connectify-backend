@@ -94,3 +94,25 @@ export const getCurrentSessionDocs = () => {
 		},
 	});
 };
+
+export const deleteSessionDocs = () => {
+	registry.registerPath({
+		tags: ['Authentication'],
+		method: 'delete',
+		path: '/api/v1/auth/session',
+		operationId: 'deleteCurrentSession',
+		summary: 'Delete Current Session',
+		responses: {
+			200: {
+				description: 'OK',
+				content: {
+					'application/json': {
+						schema: userSessionSchema,
+					},
+				},
+			},
+			...unauthorizedErrorResponse,
+			...serverErrorResponse,
+		},
+	});
+};

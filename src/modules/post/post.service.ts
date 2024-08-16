@@ -8,31 +8,36 @@ export const addPost = async (
 	{ content, audience }: CreatePostInput,
 ) => {
 	return await db.insert(postTable).values({
-		userId,
+		user_id: userId,
 		content,
 		audience,
 	});
 };
 
 export const findOne = async (postId: number) => {
-	return await db
-		.select()
-		.from(postTable)
-		.where(eq(postTable.id, postId))
-		.limit(1);
+	const post = (
+		await db
+			.select()
+			.from(postTable)
+			.where(eq(postTable.id, postId))
+			.limit(1)
+	)[0];
+
+	return post;
 };
 
 export const findAll = async (userId: number) => {
 	return await db
-		.select()
+		.selectDistinctOn([postTable.created_at])
 		.from(postTable)
-		.where(eq(postTable.userId, userId));
+		.where(eq(postTable.user_id, userId))
+		.orderBy(postTable.created_at);
 };
 
 export const deletePost = async (userId: number, postId: number) => {
 	return await db
 		.delete(postTable)
-		.where(and(eq(postTable.userId, userId), eq(postTable.id, postId)))
+		.where(and(eq(postTable.user_id, userId), eq(postTable.id, postId)))
 		.returning({
 			post_id: postTable.id,
 		});

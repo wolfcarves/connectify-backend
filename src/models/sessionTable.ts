@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, serial, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer } from 'drizzle-orm/pg-core';
 import { userTable } from './userTable';
 
 export const sessionTable = pgTable('session', {
