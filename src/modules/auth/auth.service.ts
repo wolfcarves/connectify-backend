@@ -34,11 +34,13 @@ export const findUserById = async (userId: number) => {
 };
 
 export const createUser = async (
+	name: string,
 	username: string,
 	email: string,
 	password: string,
 ) => {
 	return await db.insert(userTable).values({
+		name,
 		username: username.toLowerCase(),
 		email: email.toLowerCase(),
 		password,

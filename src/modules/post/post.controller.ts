@@ -49,14 +49,14 @@ export const getPosts = asyncHandler(
 			{ userId: string },
 			never,
 			never,
-			{ page: number; per_page: number }
+			{ page: string; per_page: string }
 		>,
 		res: Response,
 	) => {
 		const userId = Number(req.params.userId);
 
-		const page = req.query.page ?? 1;
-		const per_page = req.query.per_page ?? 10;
+		const page = Number(req.query.page) ?? 1;
+		const per_page = Number(req.query.per_page) ?? 10;
 
 		const posts = await postService.findAll(userId, page, per_page);
 

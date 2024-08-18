@@ -5,11 +5,9 @@ export const userSchema = registry.register(
 	'User',
 	z.object({
 		email: z.string().email(),
-		uuid: z.string(),
 		name: z.string(),
 		username: z.string(),
 		password: z.string(),
-		avatar: z.string(),
 	}),
 );
 
