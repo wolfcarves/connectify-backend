@@ -45,12 +45,20 @@ export const getPost = asyncHandler(async (req: Request, res: Response) => {
 
 export const getPosts = asyncHandler(
 	async (
-		req: Request<{ userId: string }, never, never, never>,
+		req: Request<
+			{ userId: string },
+			never,
+			never,
+			{ page: number; per_page: number }
+		>,
 		res: Response,
 	) => {
-		const params = req.params;
+		const userId = Number(req.params.userId);
 
-		const posts = await postService.findAll(Number(params.userId));
+		const page = req.query.page ?? 1;
+		const per_page = req.query.per_page ?? 10;
+
+		const posts = await postService.findAll(userId, page, per_page);
 
 		if (posts.length === 0) throw new NotFoundException('No posts found');
 

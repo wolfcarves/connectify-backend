@@ -14,6 +14,8 @@ import {
 import { validateSession } from './middleware/auth.middleware';
 import { writeDocumentation } from './lib/zodToOpenAPI';
 import { corsOptions } from './config/corsOptions';
+import cloudinary from 'cloudinary';
+import { cloudinaryOptions } from './config/cloundinaryOptions';
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -23,6 +25,8 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+cloudinary.v2.config(cloudinaryOptions);
 
 app.use(validateSession);
 

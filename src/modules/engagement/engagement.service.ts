@@ -56,8 +56,13 @@ export const getComments = async (postId: number) => {
 	return await db
 		.select({
 			id: postCommentTable.id,
-			username: userTable.username,
+			user: {
+				id: userTable.id,
+				name: userTable.name,
+			},
 			comment: postCommentTable.comment,
+			created_at: postCommentTable.created_at,
+			updated_at: postCommentTable.updated_at,
 		})
 		.from(postCommentTable)
 		.where(eq(postCommentTable.post_id, postId))

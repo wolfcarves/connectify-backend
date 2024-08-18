@@ -1,7 +1,7 @@
 import { UnauthorizedException } from '@/exceptions/UnauthorizedException';
 import type { CorsOptions } from 'cors';
 
-const whitelist = ['http://localhost:3000'];
+const whitelist = ['http://localhost:3000', 'http://localhost:5000'];
 
 export const corsOptions: CorsOptions = {
 	origin: (origin, callback) => {

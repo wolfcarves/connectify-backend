@@ -6,6 +6,7 @@ import {
 } from '@/helper/commonErrorResponse';
 import { successResponseSchema } from '@/schema/responseSchema';
 import { z } from 'zod';
+import { commentSchema } from './engagement.schema';
 
 export const likePostDocs = () => {
 	registry.registerPath({
@@ -53,6 +54,36 @@ export const createPostCommentDocs = () => {
 				content: {
 					'application/json': {
 						schema: successResponseSchema,
+					},
+				},
+			},
+			...unauthorizedErrorResponse,
+			...notFoundErrorResponse,
+			...serverErrorResponse,
+		},
+	});
+};
+
+export const getPostCommentsDocs = () => {
+	registry.registerPath({
+		tags: ['Post'],
+		method: 'get',
+		path: '/api/v1/post/comment/{postId}',
+		operationId: 'getPostComments',
+		summary: 'Get Post Comments',
+		request: {
+			params: z.object({
+				postId: z.number(),
+			}),
+		},
+		responses: {
+			200: {
+				description: 'OK',
+				content: {
+					'application/json': {
+						schema: z.object({
+							data: z.array(commentSchema),
+						}),
 					},
 				},
 			},

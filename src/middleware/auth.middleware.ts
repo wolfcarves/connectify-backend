@@ -1,6 +1,6 @@
 import { ForbiddenException } from '@/exceptions/ForbiddenException';
-import { lucia } from '@/lib/auth';
 import type { NextFunction, Request, Response } from 'express';
+import { lucia } from '@/lib/auth';
 
 export const validateSession = async (
 	req: Request,

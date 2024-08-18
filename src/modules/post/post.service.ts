@@ -1,7 +1,7 @@
 import { postTable } from '@/models/postTable';
 import type { CreatePostInput } from './post.schema';
 import { db } from '@/db';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 
 export const addPost = async (
 	userId: number,
@@ -26,12 +26,20 @@ export const findOne = async (postId: number) => {
 	return post;
 };
 
-export const findAll = async (userId: number) => {
-	return await db
-		.selectDistinctOn([postTable.created_at])
+export const findAll = async (
+	userId: number,
+	page: number,
+	per_page: number,
+) => {
+	const response = await db
+		.select()
 		.from(postTable)
 		.where(eq(postTable.user_id, userId))
-		.orderBy(postTable.created_at);
+		.orderBy(desc(postTable.created_at))
+		.limit(per_page)
+		.offset((page - 1) * per_page);
+
+	return response;
 };
 
 export const deletePost = async (userId: number, postId: number) => {

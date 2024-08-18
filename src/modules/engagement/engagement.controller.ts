@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
+import { commentInputSchema } from './engagement.schema';
 import * as engagementService from './engagement.service';
-import { postCommentSchema } from './engagement.schema';
 
 export const likePost = asyncHandler(async (req: Request, res: Response) => {
 	const userId = res.locals.user!.id;
@@ -21,12 +21,12 @@ export const likePost = asyncHandler(async (req: Request, res: Response) => {
 		});
 });
 
-export const createPostComment = asyncHandler(
+export const createComment = asyncHandler(
 	async (req: Request, res: Response) => {
 		const userId = res.locals.user!.id;
 		const postId = Number(req.params.postId);
 
-		const { comment } = await postCommentSchema.parseAsync(req.body);
+		const { comment } = await commentInputSchema.parseAsync(req.body);
 
 		await engagementService.addComment(userId, postId, comment);
 
@@ -37,15 +37,13 @@ export const createPostComment = asyncHandler(
 	},
 );
 
-export const getPostComments = asyncHandler(
-	async (req: Request, res: Response) => {
-		const postId = Number(req.params.postId);
+export const getComments = asyncHandler(async (req: Request, res: Response) => {
+	const postId = Number(req.params.postId);
 
-		const data = await engagementService.getComments(postId);
+	const data = await engagementService.getComments(postId);
 
-		res.status(200).json({
-			success: true,
-			data: data,
-		});
-	},
-);
+	res.status(200).json({
+		success: true,
+		data: data,
+	});
+});

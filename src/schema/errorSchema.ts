@@ -1,6 +1,14 @@
 import { z } from 'zod';
 import { registry } from '@/lib/zodToOpenAPI';
 
+export const badRequestErrorSchema = registry.register(
+	'BadRequestError',
+	z.object({
+		message: z.string().openapi({ example: 'Not Found' }),
+		statusCode: z.number().openapi({ example: 404 }),
+	}),
+);
+
 export const validationErrorSchema = registry.register(
 	'ValidationError',
 	z.object({

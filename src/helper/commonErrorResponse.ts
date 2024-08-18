@@ -1,9 +1,21 @@
 import {
+	badRequestErrorSchema,
 	conflictErrorSchema,
 	serverErrorSchema,
 	unauthorizedErrorSchema,
 	validationErrorSchema,
 } from '@/schema/errorSchema';
+
+export const badRequestErrorResponse = {
+	400: {
+		description: 'Bad Request Error',
+		content: {
+			'application/json': {
+				schema: badRequestErrorSchema,
+			},
+		},
+	},
+};
 
 export const validationErrorResponse = {
 	400: {

@@ -16,13 +16,14 @@ EngagementDocumentation.createPostCommentDocs();
 EngagementRoute.post(
 	'/comment/:postId',
 	requireAuth,
-	EngagementController.createPostComment,
+	EngagementController.createComment,
 );
 
+EngagementDocumentation.getPostCommentsDocs();
 EngagementRoute.get(
 	'/comment/:postId',
 	requireAuth,
-	EngagementController.getPostComments,
+	EngagementController.getComments,
 );
 
 export default EngagementRoute;
