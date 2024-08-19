@@ -4,6 +4,8 @@ import { registry } from '@/lib/zodToOpenAPI';
 export const userSchema = registry.register(
 	'User',
 	z.object({
+		id: z.number(),
+		avatar: z.string(),
 		email: z.string().email(),
 		name: z.string(),
 		username: z.string(),
@@ -12,12 +14,3 @@ export const userSchema = registry.register(
 );
 
 export type UserSchema = z.infer<typeof userSchema>;
-
-export const userAvatarSchema = registry.register(
-	'UserAvatar',
-	z.object({
-		avatar: z.string(),
-		id: z.number(),
-		user_id: z.number(),
-	}),
-);

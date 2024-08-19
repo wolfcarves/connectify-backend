@@ -16,11 +16,10 @@ UseRouter.post(
 	UserController.uploadUserProfileImage,
 );
 
-UserDocumentation.getUserProfileImageDocs();
-UseRouter.get(
+UseRouter.delete(
 	'/profile/avatar',
 	requireAuth,
-	UserController.getUserProfileImage,
+	UserController.deleteUserProfileImage,
 );
 
 export default UseRouter;

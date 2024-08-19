@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Request, Response } from 'express';
 import { createPostInputSchema, type CreatePostInput } from './post.schema';
 import asyncHandler from 'express-async-handler';
 import * as postService from './post.service';
+import * as userService from '../user/user.service';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 
 export const createPost = asyncHandler(
@@ -20,28 +22,6 @@ export const createPost = asyncHandler(
 		});
 	},
 );
-
-export const getPost = asyncHandler(async (req: Request, res: Response) => {
-	const userId = Number(res.locals.user!.id);
-	const postId = Number(req.params.postId);
-
-	const post = await postService.findOne(postId);
-
-	// allow user to view if he owns the post
-	const ableToView = post?.audience === 'private' && userId !== post?.user_id;
-
-	if (!post?.id) {
-		throw new NotFoundException('Post not found');
-	}
-
-	if (ableToView) {
-		throw new NotFoundException('Post not found');
-	}
-
-	res.status(200).json({
-		data: post,
-	});
-});
 
 export const getPosts = asyncHandler(
 	async (
@@ -67,6 +47,29 @@ export const getPosts = asyncHandler(
 		});
 	},
 );
+
+export const getPost = asyncHandler(async (req: Request, res: Response) => {
+	const userId = Number(res.locals.user!.id);
+	const postId = Number(req.params.postId);
+
+	const post = await postService.findOne(postId);
+
+	// allow user to view if he owns the post
+	const ableToView =
+		post?.post.audience === 'private' && userId !== post?.user.id;
+
+	if (!post.post.id) {
+		throw new NotFoundException('Post not found');
+	}
+
+	if (ableToView) {
+		throw new NotFoundException('Post not found');
+	}
+
+	res.status(200).json({
+		data: post,
+	});
+});
 
 export const deletePost = asyncHandler(async (req: Request, res: Response) => {
 	const userId = Number(res.locals.user!.id);

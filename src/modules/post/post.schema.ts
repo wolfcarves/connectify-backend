@@ -18,10 +18,6 @@ export const postSchema = registry.register(
 	'Post',
 	createPostInputSchema.extend({
 		id: z.number(),
-		user_id: z.number(),
-		likes: z.number(),
-		comments: z.number(),
-		shares: z.number(),
 		created_at: z.date(),
 		updated_at: z.date(),
 	}),

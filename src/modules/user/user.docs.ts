@@ -6,7 +6,6 @@ import {
 	validationErrorResponse,
 } from '@/helper/commonErrorResponse';
 import { successResponseSchema } from '@/schema/responseSchema';
-import { userAvatarSchema } from './user.schema';
 import { z } from 'zod';
 
 export const uploadUserProfileImageDocs = () => {
@@ -38,33 +37,6 @@ export const uploadUserProfileImageDocs = () => {
 				},
 			},
 
-			...badRequestErrorResponse,
-			...validationErrorResponse,
-			...unauthorizedErrorResponse,
-			...serverErrorResponse,
-		},
-	});
-};
-
-export const getUserProfileImageDocs = () => {
-	registry.registerPath({
-		tags: ['User'],
-		method: 'get',
-		path: '/api/v1/user/profile/avatar',
-		operationId: 'getUserProfileImage',
-		summary: 'Get Profile Image',
-		responses: {
-			200: {
-				description: 'OK',
-				content: {
-					'application/json': {
-						schema: z.object({
-							success: z.boolean(),
-							data: userAvatarSchema,
-						}),
-					},
-				},
-			},
 			...badRequestErrorResponse,
 			...validationErrorResponse,
 			...unauthorizedErrorResponse,

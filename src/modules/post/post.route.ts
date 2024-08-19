@@ -8,11 +8,11 @@ const PostRouter = express.Router();
 PostDocumentation.createPostDocs();
 PostRouter.post('/', requireAuth, PostController.createPost);
 
-PostDocumentation.getUserPostDocs();
-PostRouter.get('/:postId', requireAuth, PostController.getPost);
-
 PostDocumentation.getUserPostsDocs();
-PostRouter.get('/all/:userId', requireAuth, PostController.getPosts);
+PostRouter.get('/all/:userId', PostController.getPosts);
+
+PostDocumentation.getUserPostDocs();
+PostRouter.get('/:postId', PostController.getPost);
 
 PostRouter.delete('/:postId', requireAuth, PostController.deletePost);
 

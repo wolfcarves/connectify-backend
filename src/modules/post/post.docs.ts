@@ -8,6 +8,7 @@ import {
 } from '@/helper/commonErrorResponse';
 import { successResponseSchema } from '@/schema/responseSchema';
 import { z } from 'zod';
+import { userSchema } from '../user/user.schema';
 
 export const createPostDocs = () => {
 	registry.registerPath({
@@ -60,7 +61,10 @@ export const getUserPostDocs = () => {
 				content: {
 					'application/json': {
 						schema: z.object({
-							data: postSchema,
+							data: z.object({
+								post: postSchema,
+								user: userSchema,
+							}),
 						}),
 					},
 				},
@@ -89,7 +93,12 @@ export const getUserPostsDocs = () => {
 				content: {
 					'application/json': {
 						schema: z.object({
-							data: z.array(postSchema),
+							data: z.array(
+								z.object({
+									post: postSchema,
+									user: userSchema,
+								}),
+							),
 						}),
 					},
 				},

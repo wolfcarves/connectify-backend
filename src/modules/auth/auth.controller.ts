@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Request, Response } from 'express';
 import type { UserSignUpInput } from './auth.schema';
 import { userLoginInputSchema, userSignUpInputSchema } from './auth.schema';
+import * as userService from '../user/user.service';
 import * as authService from './auth.service';
 import hashPassword from '@/utils/hashPassword';
 import { lucia } from '@/lib/auth';
@@ -13,7 +15,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 		req.body,
 	);
 
-	const user = await authService.findUserByUsername(username);
+	const user = await userService.findUserByUsername(username);
 
 	const error: ZodError['validationErrors'] = [
 		{
@@ -55,8 +57,8 @@ export const signUpUser = asyncHandler(
 		const { username, name, email, password } =
 			await userSignUpInputSchema.parseAsync(req.body);
 
-		const usernameResults = await authService.findUserByUsername(username);
-		const emailResults = await authService.findUserByEmail(email);
+		const usernameResults = await userService.findUserByUsername(username);
+		const emailResults = await userService.findUserByEmail(email);
 
 		const errors: ZodError['validationErrors'] = [];
 
@@ -95,9 +97,8 @@ export const getCurrentSession = asyncHandler(
 			throw new ForbiddenException('No Authorization');
 		}
 
-		const user = await authService.findUserById(userId!);
+		const user = await userService.findUserById(userId!);
 
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { password, ...session } = user;
 
 		res.status(200).json({

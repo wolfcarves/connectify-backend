@@ -7,7 +7,7 @@ export const uploadUserProfileImage = asyncHandler(
 		const file = req.file;
 		const user = res.locals.user!;
 
-		const result = await userService.uploadImage(user, file);
+		const result = await userService.uploadImage(user.id, file);
 
 		res.status(200).send({
 			success: true,
@@ -17,14 +17,29 @@ export const uploadUserProfileImage = asyncHandler(
 );
 
 export const getUserProfileImage = asyncHandler(
-	async (_req: Request, res: Response) => {
-		const user = res.locals.user!;
-
-		const result = await userService.getProfileImage(user.id);
+	async (
+		req: Request<{ userId: string }, never, never, never>,
+		res: Response,
+	) => {
+		const userId = Number(req.params.userId);
+		const result = await userService.getProfileImage(userId);
 
 		res.status(200).send({
 			success: true,
 			data: result[0],
+		});
+	},
+);
+
+export const deleteUserProfileImage = asyncHandler(
+	async (_req: Request, res: Response) => {
+		const user = res.locals.user!;
+
+		await userService.deleteUserProfileImage(user.id);
+
+		res.status(200).send({
+			success: true,
+			message: 'Profile image removed',
 		});
 	},
 );

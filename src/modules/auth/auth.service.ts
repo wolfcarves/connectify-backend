@@ -1,37 +1,7 @@
 import { db } from '@/db/index';
 import { userTable } from '@/models/userTable';
-import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
-
-export const findUserByEmail = async (email: string) => {
-	const user = await db
-		.select()
-		.from(userTable)
-		.where(eq(userTable.email, email))
-		.limit(1);
-
-	return user[0];
-};
-
-export const findUserByUsername = async (username: string) => {
-	const user = await db
-		.select()
-		.from(userTable)
-		.where(eq(userTable.username, username))
-		.limit(1);
-
-	return user[0];
-};
-
-export const findUserById = async (userId: number) => {
-	const user = await db
-		.select()
-		.from(userTable)
-		.where(eq(userTable.id, userId))
-		.limit(1);
-
-	return user[0];
-};
+import { avatarTable } from '@/models/avatarTable';
 
 export const createUser = async (
 	name: string,
@@ -39,12 +9,30 @@ export const createUser = async (
 	email: string,
 	password: string,
 ) => {
-	return await db.insert(userTable).values({
-		name,
-		username: username.toLowerCase(),
-		email: email.toLowerCase(),
-		password,
-	});
+	const arrName = name.split(' ');
+
+	const capitalizeWord = (word: string) => {
+		if (!word) return '';
+		return word[0].toUpperCase() + word.slice(1).toLowerCase();
+	};
+
+	const fullname = arrName.filter(Boolean).map(capitalizeWord).join(' ');
+	const avatar = (await db.select().from(avatarTable))[0];
+
+	const user = (
+		await db
+			.insert(userTable)
+			.values({
+				avatar: avatar.avatar,
+				name: fullname,
+				username: username.toLowerCase(),
+				email: email.toLowerCase(),
+				password,
+			})
+			.returning({ id: userTable.id })
+	)[0];
+
+	return user;
 };
 
 export const validatePassword = async (
