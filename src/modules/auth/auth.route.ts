@@ -11,8 +11,8 @@ AuthRouter.post('/login', AuthController.loginUser);
 AuthDocumentation.signUpUserDocs();
 AuthRouter.post('/signup', AuthController.signUpUser);
 
-AuthDocumentation.getCurrentSessionDocs();
-AuthRouter.get('/session', requireAuth, AuthController.getCurrentSession);
+AuthDocumentation.useGetCurrentSessionDocs();
+AuthRouter.get('/session', requireAuth, AuthController.useGetCurrentSession);
 
 AuthDocumentation.deleteSessionDocs();
 AuthRouter.delete('/session', requireAuth, AuthController.destroySession);

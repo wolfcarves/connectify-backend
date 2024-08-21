@@ -72,12 +72,12 @@ export const signUpUserDocs = () => {
 	});
 };
 
-export const getCurrentSessionDocs = () => {
+export const useGetCurrentSessionDocs = () => {
 	registry.registerPath({
 		tags: ['Authentication'],
 		method: 'get',
 		path: '/api/v1/auth/session',
-		operationId: 'getCurrentSession',
+		operationId: 'useGetCurrentSession',
 		summary: 'Get User Session',
 
 		responses: {

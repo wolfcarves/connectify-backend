@@ -9,7 +9,7 @@ PostDocumentation.createPostDocs();
 PostRouter.post('/', requireAuth, PostController.createPost);
 
 PostDocumentation.getUserPostsDocs();
-PostRouter.get('/all/:userId', PostController.getPosts);
+PostRouter.get('/all/:userId', requireAuth, PostController.getPosts);
 
 PostDocumentation.getUserPostDocs();
 PostRouter.get('/:postId', PostController.getPost);

@@ -89,7 +89,7 @@ export const signUpUser = asyncHandler(
 	},
 );
 
-export const getCurrentSession = asyncHandler(
+export const useGetCurrentSession = asyncHandler(
 	async (_req: Request, res: Response) => {
 		const userId = res.locals.user?.id;
 
