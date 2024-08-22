@@ -16,17 +16,17 @@ export const uploadUserProfileImage = asyncHandler(
 	},
 );
 
-export const getUserProfileImage = asyncHandler(
+export const getUserProfile = asyncHandler(
 	async (
 		req: Request<{ userId: string }, never, never, never>,
 		res: Response,
 	) => {
 		const userId = Number(req.params.userId);
-		const result = await userService.getProfileImage(userId);
+		const result = await userService.findUserById(userId);
 
 		res.status(200).send({
 			success: true,
-			data: result[0],
+			data: result,
 		});
 	},
 );

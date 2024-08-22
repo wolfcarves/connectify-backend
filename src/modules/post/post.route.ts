@@ -14,6 +14,7 @@ PostRouter.get('/all/:userId', requireAuth, PostController.getPosts);
 PostDocumentation.getUserPostDocs();
 PostRouter.get('/:postId', PostController.getPost);
 
+PostDocumentation.deleteUserPost();
 PostRouter.delete('/:postId', requireAuth, PostController.deletePost);
 
 export default PostRouter;

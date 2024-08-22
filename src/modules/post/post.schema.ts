@@ -18,6 +18,7 @@ export const postSchema = registry.register(
 	'Post',
 	createPostInputSchema.extend({
 		id: z.number(),
+		isLiked: z.boolean(),
 		created_at: z.date(),
 		updated_at: z.date(),
 	}),

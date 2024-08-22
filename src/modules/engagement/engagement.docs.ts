@@ -10,7 +10,7 @@ import { commentSchema } from './engagement.schema';
 
 export const likePostDocs = () => {
 	registry.registerPath({
-		tags: ['Post'],
+		tags: ['Engagement'],
 		method: 'post',
 		path: '/api/v1/post/like/{postId}',
 		operationId: 'postLikePost',
@@ -38,7 +38,7 @@ export const likePostDocs = () => {
 
 export const createPostCommentDocs = () => {
 	registry.registerPath({
-		tags: ['Post'],
+		tags: ['Engagement'],
 		method: 'post',
 		path: '/api/v1/post/comment/{postId}',
 		operationId: 'postPostComment',
@@ -66,7 +66,7 @@ export const createPostCommentDocs = () => {
 
 export const getPostCommentsDocs = () => {
 	registry.registerPath({
-		tags: ['Post'],
+		tags: ['Engagement'],
 		method: 'get',
 		path: '/api/v1/post/comment/{postId}',
 		operationId: 'getPostComments',

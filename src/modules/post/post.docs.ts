@@ -108,3 +108,35 @@ export const getUserPostsDocs = () => {
 		},
 	});
 };
+
+export const deleteUserPost = () => {
+	registry.registerPath({
+		tags: ['Post'],
+		method: 'delete',
+		path: '/api/v1/post/{postId}',
+		operationId: 'getUserPosts',
+		summary: 'Get User Posts',
+		request: {
+			params: z.object({
+				postId: z.number(),
+			}),
+		},
+		responses: {
+			200: {
+				description: 'OK',
+				content: {
+					'application/json': {
+						schema: z.object({
+							data: z.object({
+								post: postSchema,
+								user: userSchema,
+							}),
+						}),
+					},
+				},
+			},
+			...notFoundErrorResponse,
+			...serverErrorResponse,
+		},
+	});
+};

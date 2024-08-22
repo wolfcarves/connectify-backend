@@ -21,6 +21,7 @@ export const userSignUpInputSchema = registry.register(
 	'UserSignUpInput',
 	userSchema
 		.extend({
+			password: z.string(),
 			confirm_password: z.string(),
 		})
 		.refine(data => data.password === data.confirm_password, {
@@ -34,6 +35,6 @@ export type UserSignUpInput = z.infer<typeof userSignUpInputSchema>;
 export const userSessionSchema = registry.register(
 	'Session',
 	z.object({
-		data: userSchema.omit({ password: true }).extend({ id: z.number() }),
+		data: userSchema.extend({ id: z.number() }),
 	}),
 );

@@ -5,7 +5,7 @@ import AuthRouter from './modules/auth/auth.route';
 import HealthRouter from './modules/health/health.route';
 import PostRouter from './modules/post/post.route';
 import EngagementRouter from './modules/engagement/engagement.route';
-import UseRouter from './modules/user/user.route';
+import UserRouter from './modules/user/user.route';
 import express from 'express';
 
 const apiRouter = express.Router();
@@ -16,7 +16,7 @@ export const renderRoutes = (app: Express) => {
 	apiRouter.use('/health', HealthRouter);
 	apiRouter.use('/post', PostRouter);
 	apiRouter.use('/post', EngagementRouter);
-	apiRouter.use('/user', UseRouter);
+	apiRouter.use('/user', UserRouter);
 
 	app.use(apiPrefix, apiRouter);
 };

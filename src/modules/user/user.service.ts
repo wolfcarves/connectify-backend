@@ -6,35 +6,56 @@ import { env } from '@/config/env';
 import { userTable } from '@/models/userTable';
 import crypto from 'crypto';
 import { avatarTable } from '@/models/avatarTable';
+import { NotFoundException } from '@/exceptions/NotFoundException';
 
 export const findUserByEmail = async (email: string) => {
-	const user = await db
-		.select()
-		.from(userTable)
-		.where(eq(userTable.email, email))
-		.limit(1);
+	const user = (
+		await db
+			.select()
+			.from(userTable)
+			.where(eq(userTable.email, email))
+			.limit(1)
+	)[0];
 
-	return user[0];
+	if (!user) {
+		throw new NotFoundException('User not found');
+	}
+
+	return user;
 };
 
 export const findUserByUsername = async (username: string) => {
-	const user = await db
-		.select()
-		.from(userTable)
-		.where(eq(userTable.username, username))
-		.limit(1);
+	const user = (
+		await db
+			.select()
+			.from(userTable)
+			.where(eq(userTable.username, username))
+			.limit(1)
+	)[0];
 
-	return user[0];
+	if (!user) {
+		throw new NotFoundException('User not found');
+	}
+
+	return user;
 };
 
 export const findUserById = async (userId: number) => {
-	const user = await db
-		.select()
-		.from(userTable)
-		.where(eq(userTable.id, userId))
-		.limit(1);
+	const user = (
+		await db
+			.select()
+			.from(userTable)
+			.where(eq(userTable.id, userId))
+			.limit(1)
+	)[0];
 
-	return user[0];
+	if (!user) {
+		throw new NotFoundException('User not found');
+	}
+
+	const { password, ...rest } = user;
+
+	return rest;
 };
 
 export const uploadImage = async (
@@ -69,10 +90,6 @@ export const uploadImage = async (
 		.where(eq(userTable.id, userId));
 
 	return 'Successfully Uploaded Image';
-};
-
-export const getProfileImage = async (userId: number) => {
-	return await db.select().from(userTable).where(eq(userTable.id, userId));
 };
 
 export const deleteUserProfileImage = async (userId: number) => {

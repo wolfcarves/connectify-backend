@@ -3,7 +3,6 @@ import type { Request, Response } from 'express';
 import { createPostInputSchema, type CreatePostInput } from './post.schema';
 import asyncHandler from 'express-async-handler';
 import * as postService from './post.service';
-import * as userService from '../user/user.service';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 
 export const createPost = asyncHandler(
@@ -33,12 +32,18 @@ export const getPosts = asyncHandler(
 		>,
 		res: Response,
 	) => {
-		const userId = Number(req.params.userId);
+		const sessionUserId = res.locals.user!.id;
+		const paramUserId = Number(req.params.userId);
 
 		const page = Number(req.query.page) ?? 1;
 		const per_page = Number(req.query.per_page) ?? 10;
 
-		const posts = await postService.findAll(userId, page, per_page);
+		const posts = await postService.findAll(
+			sessionUserId,
+			paramUserId,
+			page,
+			per_page,
+		);
 
 		if (posts.length === 0) throw new NotFoundException('No posts found');
 

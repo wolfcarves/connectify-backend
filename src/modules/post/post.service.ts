@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { postTable } from '@/models/postTable';
+import { postLikeTable, postTable } from '@/models/postTable';
 import type { CreatePostInput } from './post.schema';
 import { db } from '@/db';
 import { and, desc, eq } from 'drizzle-orm';
@@ -17,21 +17,31 @@ export const addPost = async (
 };
 
 export const findAll = async (
-	userId: number,
+	sessionUserId: number,
+	paramUserId: number,
 	page: number,
 	per_page: number,
 ) => {
 	const posts = await db
 		.select()
 		.from(postTable)
-		.where(eq(postTable.user_id, userId))
+		.where(eq(postTable.user_id, paramUserId))
 		.innerJoin(userTable, eq(postTable.user_id, userTable.id))
+		.leftJoin(
+			postLikeTable,
+			and(
+				eq(postLikeTable.user_id, sessionUserId),
+				eq(postTable.id, postLikeTable.post_id),
+			),
+		)
 		.orderBy(desc(postTable.created_at))
 		.limit(per_page)
 		.offset((page - 1) * per_page);
 
 	const response = posts.map(p => {
-		const { user_id, ...restPost } = p.post;
+		const isLiked = p.post_likes?.id ? true : false;
+
+		const { user_id, ...restPost } = { ...p.post, isLiked };
 		const { password, ...restUser } = p.user;
 
 		return {
