@@ -24,7 +24,7 @@ export const userSignUpInputSchema = registry.register(
 			password: z.string(),
 			confirm_password: z.string(),
 		})
-		.omit({ avatar: true })
+		.omit({ id: true, avatar: true })
 		.refine(data => data.password === data.confirm_password, {
 			message: "Password didn't matched",
 			path: ['password', 'confirm_password'],

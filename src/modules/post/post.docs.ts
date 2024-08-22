@@ -114,7 +114,7 @@ export const deleteUserPost = () => {
 		tags: ['Post'],
 		method: 'delete',
 		path: '/api/v1/post/{postId}',
-		operationId: 'getUserPosts',
+		operationId: 'deleteUserPost',
 		summary: 'Get User Posts',
 		request: {
 			params: z.object({
