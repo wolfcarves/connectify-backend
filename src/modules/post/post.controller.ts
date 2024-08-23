@@ -3,7 +3,9 @@ import type { Request, Response } from 'express';
 import { createPostInputSchema, type CreatePostInput } from './post.schema';
 import asyncHandler from 'express-async-handler';
 import * as postService from './post.service';
+import * as userService from '../user/user.service';
 import { NotFoundException } from '@/exceptions/NotFoundException';
+import type { SearchAndQueryParams } from '@/types/request';
 
 export const createPost = asyncHandler(
 	async (
@@ -22,25 +24,25 @@ export const createPost = asyncHandler(
 	},
 );
 
-export const getPosts = asyncHandler(
+export const getUserPosts = asyncHandler(
 	async (
-		req: Request<
-			{ userId: string },
-			never,
-			never,
+		req: SearchAndQueryParams<
+			{ username: string },
 			{ page: string; per_page: string }
 		>,
 		res: Response,
 	) => {
 		const sessionUserId = res.locals.user!.id;
-		const paramUserId = Number(req.params.userId);
+		const paramsUsername = req.params.username;
 
 		const page = Number(req.query.page) ?? 1;
 		const per_page = Number(req.query.per_page) ?? 10;
 
+		const user = await userService.findUser({ username: paramsUsername });
+
 		const posts = await postService.findAll(
 			sessionUserId,
-			paramUserId,
+			user.id,
 			page,
 			per_page,
 		);

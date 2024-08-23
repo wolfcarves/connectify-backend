@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import * as userService from './user.service';
+import type { QueryParams } from '@/types/request';
+import { generateId } from 'lucia';
 
 export const uploadUserProfileImage = asyncHandler(
 	async (req: Request, res: Response) => {
@@ -18,11 +20,15 @@ export const uploadUserProfileImage = asyncHandler(
 
 export const getUserProfile = asyncHandler(
 	async (
-		req: Request<{ userId: string }, never, never, never>,
+		req: QueryParams<{ userId?: string; username?: string }>,
 		res: Response,
 	) => {
-		const userId = Number(req.params.userId);
-		const result = await userService.findUserById(userId);
+		const query = {
+			...req.query,
+			userId: req.query.userId ? parseInt(req.query.userId) : undefined,
+		};
+
+		const result = await userService.findUser(query);
 
 		res.status(200).send({
 			success: true,

@@ -30,6 +30,7 @@ export const postLikeTable = pgTable('post_likes', {
 		.notNull()
 		.references(() => postTable.id),
 	created_at: timestamp('created_at').defaultNow().notNull(),
+	updated_at: timestamp('updated_at').$onUpdate(() => new Date()),
 });
 
 export const postCommentTable = pgTable('post_comments', {

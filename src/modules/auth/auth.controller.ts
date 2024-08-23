@@ -97,9 +97,7 @@ export const getCurrentSession = asyncHandler(
 			throw new ForbiddenException('No Authorization');
 		}
 
-		const user = await userService.findUserById(userId!);
-
-		const { password, ...session } = user;
+		const session = await userService.findUserById(userId!);
 
 		res.status(200).json({
 			data: session,

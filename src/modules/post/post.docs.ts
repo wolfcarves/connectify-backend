@@ -79,12 +79,16 @@ export const getUserPostsDocs = () => {
 	registry.registerPath({
 		tags: ['Post'],
 		method: 'get',
-		path: '/api/v1/post/all/{userId}',
+		path: '/api/v1/post/all/{username}',
 		operationId: 'getUserPosts',
 		summary: 'Get User Posts',
 		request: {
 			params: z.object({
-				userId: z.number(),
+				username: z.string(),
+			}),
+			query: z.object({
+				page: z.number().optional(),
+				per_page: z.number().optional(),
 			}),
 		},
 		responses: {
@@ -104,6 +108,7 @@ export const getUserPostsDocs = () => {
 				},
 			},
 			...notFoundErrorResponse,
+			...unauthorizedErrorResponse,
 			...serverErrorResponse,
 		},
 	});

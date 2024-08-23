@@ -24,6 +24,6 @@ UserRouter.delete(
 );
 
 UserDocumentation.getUserProfileDocs();
-UserRouter.get('/profile/:userId', requireAuth, UserController.getUserProfile);
+UserRouter.get('/profile', requireAuth, UserController.getUserProfile);
 
 export default UserRouter;

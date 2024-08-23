@@ -1,7 +1,7 @@
 import cloudinary from 'cloudinary';
 import { BadRequestException } from '@/exceptions/BadRequestException';
 import { db } from '@/db';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { env } from '@/config/env';
 import { userTable } from '@/models/userTable';
 import crypto from 'crypto';
@@ -46,6 +46,35 @@ export const findUserById = async (userId: number) => {
 			.select()
 			.from(userTable)
 			.where(eq(userTable.id, userId))
+			.limit(1)
+	)[0];
+
+	if (!user) {
+		throw new NotFoundException('User not found');
+	}
+
+	const { password, ...rest } = user;
+
+	return rest;
+};
+
+export const findUser = async ({
+	userId,
+	username,
+}: {
+	userId?: number;
+	username?: string;
+}) => {
+	const user = (
+		await db
+			.select()
+			.from(userTable)
+			.where(
+				or(
+					eq(userTable.id, userId ?? -1),
+					eq(userTable.username, username ?? ''),
+				),
+			)
 			.limit(1)
 	)[0];
 

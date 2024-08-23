@@ -75,12 +75,13 @@ export const getUserProfileDocs = () => {
 	registry.registerPath({
 		tags: ['User'],
 		method: 'get',
-		path: '/api/v1/user/profile/{userId}',
+		path: '/api/v1/user/profile',
 		operationId: 'getUserProfile',
 		summary: 'Get User Profile',
 		request: {
-			params: z.object({
-				userId: z.number(),
+			query: z.object({
+				userId: z.number().optional(),
+				username: z.string().optional(),
 			}),
 		},
 		responses: {
