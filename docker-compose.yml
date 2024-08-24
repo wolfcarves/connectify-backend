@@ -14,3 +14,4 @@ services:
       DATABASE_URI: ${DATABASE_URI}
     ports:
       - 80:5000
+
