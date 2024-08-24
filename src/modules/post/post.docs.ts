@@ -47,12 +47,14 @@ export const getUserPostDocs = () => {
 	registry.registerPath({
 		tags: ['Post'],
 		method: 'get',
-		path: '/api/v1/post/{postId}',
+		path: '/api/v1/post/{uuid}',
 		operationId: 'getUserPost',
 		summary: 'Get User Post',
 		request: {
 			params: z.object({
-				postId: z.number(),
+				uuid: z.string().openapi({
+					example: '8c5aa382-76c2-4aee-bab8-95e79806f262',
+				}),
 			}),
 		},
 		responses: {

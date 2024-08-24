@@ -12,7 +12,7 @@ PostDocumentation.getUserPostsDocs();
 PostRouter.get('/all/:username', requireAuth, PostController.getUserPosts);
 
 PostDocumentation.getUserPostDocs();
-PostRouter.get('/:postId', PostController.getPost);
+PostRouter.get('/:uuid', PostController.getUserPost);
 
 PostDocumentation.deleteUserPost();
 PostRouter.delete('/:postId', requireAuth, PostController.deletePost);

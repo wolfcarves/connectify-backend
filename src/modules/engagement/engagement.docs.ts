@@ -47,6 +47,15 @@ export const createPostCommentDocs = () => {
 			params: z.object({
 				postId: z.number(),
 			}),
+			body: {
+				content: {
+					'application/json': {
+						schema: z.object({
+							comment: z.string(),
+						}),
+					},
+				},
+			},
 		},
 		responses: {
 			200: {

@@ -53,17 +53,26 @@ export const findAll = async (
 	return response;
 };
 
-export const findOne = async (postId: number) => {
+export const findOne = async (sessionUserId: number, uuid: string) => {
 	const post = (
 		await db
 			.select()
 			.from(postTable)
-			.where(eq(postTable.id, postId))
+			.where(eq(postTable.uuid, uuid))
 			.innerJoin(userTable, eq(postTable.user_id, userTable.id))
+			.leftJoin(
+				postLikeTable,
+				and(
+					eq(postLikeTable.user_id, sessionUserId),
+					eq(postTable.id, postLikeTable.post_id),
+				),
+			)
 			.limit(1)
 	)[0];
 
-	const { user_id, ...restPost } = post.post;
+	const isLiked = post.post_likes?.id ? true : false;
+
+	const { user_id, ...restPost } = { ...post.post, isLiked };
 	const { password, ...restUser } = post.user;
 
 	const response = {

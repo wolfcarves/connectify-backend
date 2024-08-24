@@ -15,6 +15,7 @@ export const commentSchema = registry.register(
 		user: z.object({
 			id: z.number(),
 			name: z.string(),
+			avatar: z.string(),
 		}),
 		comment: z.string(),
 		created_at: z.date(),

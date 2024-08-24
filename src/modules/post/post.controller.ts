@@ -55,15 +55,15 @@ export const getUserPosts = asyncHandler(
 	},
 );
 
-export const getPost = asyncHandler(async (req: Request, res: Response) => {
-	const userId = Number(res.locals.user!.id);
-	const postId = Number(req.params.postId);
+export const getUserPost = asyncHandler(async (req: Request, res: Response) => {
+	const sessionUserId = Number(res.locals.user!.id);
+	const uuid = req.params.uuid;
 
-	const post = await postService.findOne(postId);
+	const post = await postService.findOne(sessionUserId, uuid);
 
 	// allow user to view if he owns the post
 	const ableToView =
-		post?.post.audience === 'private' && userId !== post?.user.id;
+		post?.post.audience === 'private' && sessionUserId !== post?.user.id;
 
 	if (!post.post.id) {
 		throw new NotFoundException('Post not found');
