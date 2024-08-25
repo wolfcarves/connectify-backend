@@ -31,6 +31,9 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 	const session = await lucia.createSession(user.id, {});
 	const sessionCookie = lucia.createSessionCookie(session.id).serialize();
 
+	console.log('session', session);
+	console.log('sessionCookie', sessionCookie);
+
 	const isPasswordCorrect = await authService.validatePassword(
 		password,
 		user.password!,
