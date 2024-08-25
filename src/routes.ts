@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import type { Express, Request, Response } from 'express';
 import OpenAPIDocs from './docs/openapi-docs.json' assert { type: 'json' };
 import SwaggerUI from 'swagger-ui-express';
@@ -20,7 +22,7 @@ export const renderRoutes = (app: Express) => {
 
 	apiRouter.get('/health', (req: Request, res: Response) => {
 		res.status(200).send({
-			message: 'Server is up and runing',
+			message: `Server is up and runing in ${process.env.DEFAULT_AVATAR_NAME}`,
 		});
 	});
 
