@@ -44,16 +44,14 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 		path: '/',
 		httpOnly: true,
 		maxAge: 30 * 24 * 60 * 60 * 1000, //30 days
-		secure: false,
+		secure: true,
 		sameSite: 'none',
 	});
 
-	res.status(200)
-
-		.json({
-			success: true,
-			message: 'Login successful',
-		});
+	res.status(200).json({
+		success: true,
+		message: 'Login successful',
+	});
 });
 
 export const signUpUser = asyncHandler(
