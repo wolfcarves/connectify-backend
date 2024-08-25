@@ -57,8 +57,8 @@ export const signUpUser = asyncHandler(
 		const { username, name, email, password } =
 			await userSignUpInputSchema.parseAsync(req.body);
 
-		const usernameResults = await userService.findUserByUsername(username);
-		const emailResults = await userService.findUserByEmail(email);
+		const usernameResults = await userService.findUser({ username });
+		const emailResults = await userService.findUser({ email });
 
 		const errors: ZodError['validationErrors'] = [];
 
