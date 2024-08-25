@@ -23,7 +23,7 @@ export const createUser = async (
 		await db
 			.insert(userTable)
 			.values({
-				avatar: avatar.avatar,
+				avatar: avatar?.avatar ?? '/m_avatar_1.svg',
 				name: fullname,
 				username: username.toLowerCase(),
 				email: email.toLowerCase(),
