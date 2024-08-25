@@ -29,7 +29,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 	}
 
 	const session = await lucia.createSession(user.id, {});
-	const sessionCookie = lucia.createSessionCookie(session.id).serialize();
+	const sessionCookie = lucia.createSessionCookie(session.id);
 
 	const isPasswordCorrect = await authService.validatePassword(
 		password,
@@ -40,9 +40,15 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 		throw new ZodError(error);
 	}
 
+	res.cookie(sessionCookie.name, sessionCookie.value, {
+		path: '/',
+		httpOnly: true,
+		maxAge: 30 * 24 * 60 * 60 * 1000, //30 days
+		secure: false,
+	});
+
 	res.status(200)
-		.appendHeader('Set-Cookie', sessionCookie)
-		.appendHeader('Location', '/')
+
 		.json({
 			success: true,
 			message: 'Login successful',
