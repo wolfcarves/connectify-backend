@@ -50,3 +50,12 @@ export const postCommentTable = pgTable('post_comments', {
 	created_at: timestamp('created_at').defaultNow().notNull(),
 	updated_at: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const postShareTable = pgTable('post_shares', {
+	id: serial('id').primaryKey().notNull(),
+	user_id: integer('user_id').references(() => userTable.id),
+	post_id: integer('post_id').references(() => postTable.id),
+	comment: text('comment').notNull(),
+	created_at: timestamp('created_at').defaultNow().notNull(),
+	updated_at: timestamp('updated_at').defaultNow().notNull(),
+});
