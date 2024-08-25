@@ -13,7 +13,7 @@ export const lucia = new Lucia(adapter, {
 	sessionCookie: {
 		attributes: {
 			secure: false, //process.env.NODE_ENV === 'production', for the meantime while we don't have ssl yet
-			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+			sameSite: 'none',
 			path: '/',
 		},
 	},
