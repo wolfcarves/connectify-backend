@@ -10,9 +10,13 @@ export const lucia = new Lucia(adapter, {
 	sessionExpiresIn: new TimeSpan(4, 'w'),
 	sessionCookie: {
 		attributes: {
-			secure: true, //process.env.NODE_ENV === 'production', for the meantime while we don't have ssl yet
-			sameSite: 'none',
+			secure: false, //process.env.NODE_ENV === 'production', for the meantime while we don't have ssl yet
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 			path: '/',
+			domain:
+				process.env.NODE_ENV === 'production'
+					? 'http://172.104.163.183'
+					: 'http://localhost:5000',
 		},
 	},
 	getUserAttributes: attr => ({
