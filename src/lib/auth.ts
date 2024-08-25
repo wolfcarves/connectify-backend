@@ -1,3 +1,5 @@
+'dotenv/config';
+
 import { Lucia, TimeSpan } from 'lucia';
 import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
 import { db } from '@/db/index';
@@ -13,10 +15,6 @@ export const lucia = new Lucia(adapter, {
 			secure: false, //process.env.NODE_ENV === 'production', for the meantime while we don't have ssl yet
 			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 			path: '/',
-			domain:
-				process.env.NODE_ENV === 'production'
-					? 'http://172.104.163.183'
-					: 'http://localhost:5000',
 		},
 	},
 	getUserAttributes: attr => ({
