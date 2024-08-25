@@ -13,6 +13,10 @@ export const lucia = new Lucia(adapter, {
 			secure: false, //process.env.NODE_ENV === 'production', for the meantime while we don't have ssl yet
 			sameSite: 'none',
 			path: '/',
+			domain:
+				process.env.NODE_ENV === 'production'
+					? 'http://172.104.163.183'
+					: 'http://localhost:5000',
 		},
 	},
 	getUserAttributes: attr => ({
