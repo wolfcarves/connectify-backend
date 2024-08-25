@@ -1,4 +1,4 @@
-import { type Express } from 'express';
+import type { Express, Request, Response } from 'express';
 import OpenAPIDocs from './docs/openapi-docs.json' assert { type: 'json' };
 import SwaggerUI from 'swagger-ui-express';
 import AuthRouter from './modules/auth/auth.route';
@@ -17,6 +17,12 @@ export const renderRoutes = (app: Express) => {
 	apiRouter.use('/post', PostRouter);
 	apiRouter.use('/post', EngagementRouter);
 	apiRouter.use('/user', UserRouter);
+
+	apiRouter.get('/health', (req: Request, res: Response) => {
+		res.status(200).send({
+			message: 'Server is up and runing',
+		});
+	});
 
 	app.use(apiPrefix, apiRouter);
 };
