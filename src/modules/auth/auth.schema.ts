@@ -19,12 +19,14 @@ export const userLoginInputSchema = registry.register(
 
 export const userSignUpInputSchema = registry.register(
 	'UserSignUpInput',
-	userSchema
-		.extend({
+	z
+		.object({
+			email: z.string().email(),
+			name: z.string(),
+			username: z.string(),
 			password: z.string(),
 			confirm_password: z.string(),
 		})
-		.omit({ id: true, avatar: true })
 		.refine(data => data.password === data.confirm_password, {
 			message: "Password didn't matched",
 			path: ['password', 'confirm_password'],
