@@ -10,7 +10,7 @@ export const lucia = new Lucia(adapter, {
 	sessionExpiresIn: new TimeSpan(4, 'w'),
 	sessionCookie: {
 		attributes: {
-			secure: process.env.NODE_ENV === 'production',
+			secure: false, //process.env.NODE_ENV === 'production', for the meantime while we don't have ssl yet
 		},
 	},
 	getUserAttributes: attr => ({
