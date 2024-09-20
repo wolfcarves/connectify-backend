@@ -116,10 +116,17 @@ export const destroySession = asyncHandler(
 
 		await lucia.invalidateSession(sessionId);
 
-		res.appendHeader(
-			'Set-Cookie',
-			lucia.createBlankSessionCookie().serialize(),
-		).json({
+		const blankSessionCookie = lucia.createBlankSessionCookie();
+
+		res.cookie(blankSessionCookie.name, blankSessionCookie.value, {
+			path: '/',
+			httpOnly: true,
+			maxAge: 0,
+			secure: true,
+			sameSite: 'none',
+		});
+
+		res.status(200).json({
 			success: true,
 			message: 'Logout successful',
 		});
