@@ -21,8 +21,8 @@ const getOpenAPIDocumentation = () => {
 		openapi: '3.0.0',
 		info: {
 			version: '1.0.0',
-			title: 'Todo List Api',
-			description: 'Todo List Api Description',
+			title: 'Connectify Api',
+			description: 'Connectify Api Description',
 		},
 		servers: [
 			{
