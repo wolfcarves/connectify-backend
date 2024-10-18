@@ -1,19 +1,24 @@
 import winston from 'winston';
 
+const colorizer = winston.format.colorize();
+
 const logger = winston.createLogger({
 	level: 'info',
-	format: winston.format.json(),
-
 	defaultMeta: { service: 'user-service' },
-	transports: [],
+	format: winston.format.combine(
+		winston.format.timestamp(),
+		winston.format.simple(),
+		winston.format.printf(msg =>
+			colorizer.colorize(
+				msg.level,
+				`${msg.timestamp} - ${msg.level}: ${msg.message}`,
+			),
+		),
+	),
+	transports: [
+		new winston.transports.Console(),
+		// new winston.transports.File({ filename: 'logfile.log' }),
+	],
 });
-
-if (process.env.NODE_ENV !== 'production') {
-	logger.add(
-		new winston.transports.Console({
-			format: winston.format.simple(),
-		}),
-	);
-}
 
 export default logger;

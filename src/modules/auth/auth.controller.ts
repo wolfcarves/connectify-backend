@@ -15,7 +15,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 		req.body,
 	);
 
-	const user = await userService.findUserByUsername(username);
+	const user = await userService.findUser({ username });
 
 	const error: ZodError['validationErrors'] = [
 		{
@@ -102,7 +102,9 @@ export const getCurrentSession = asyncHandler(
 			throw new ForbiddenException('No Authorization');
 		}
 
-		const session = await userService.findUserById(userId!);
+		const session = await userService.findUser({
+			userId,
+		});
 
 		res.status(200).json({
 			data: session,

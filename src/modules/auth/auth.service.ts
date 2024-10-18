@@ -1,5 +1,5 @@
 import { db } from '@/db/index';
-import { userTable } from '@/models/userTable';
+import { usersTable } from '@/models/usersTable';
 import bcrypt from 'bcrypt';
 import { avatarTable } from '@/models/avatarTable';
 
@@ -21,7 +21,7 @@ export const createUser = async (
 
 	const user = (
 		await db
-			.insert(userTable)
+			.insert(usersTable)
 			.values({
 				avatar: avatar?.avatar ?? '/m_avatar_1.svg',
 				name: fullname,
@@ -29,7 +29,7 @@ export const createUser = async (
 				email: email.toLowerCase(),
 				password,
 			})
-			.returning({ id: userTable.id })
+			.returning({ id: usersTable.id })
 	)[0];
 
 	return user;

@@ -8,7 +8,7 @@ import {
 	uuid,
 	index,
 } from 'drizzle-orm/pg-core';
-import { userTable } from './userTable';
+import { usersTable } from './usersTable';
 
 export const audienceEnum = pgEnum('audience', ['public', 'private']);
 
@@ -18,7 +18,7 @@ export const postTable = pgTable(
 		id: serial('id').notNull().primaryKey(),
 		uuid: uuid('uuid').defaultRandom(),
 		user_id: integer('user_id')
-			.references(() => userTable.id)
+			.references(() => usersTable.id)
 			.notNull(),
 		content: text('content').notNull(),
 		audience: audienceEnum('audience').default('public'),
@@ -34,7 +34,7 @@ export const postLikeTable = pgTable('post_likes', {
 	id: serial('id').notNull().primaryKey(),
 	user_id: integer('user_id')
 		.notNull()
-		.references(() => userTable.id),
+		.references(() => usersTable.id),
 	post_id: integer('post_id')
 		.notNull()
 		.references(() => postTable.id),
@@ -44,7 +44,7 @@ export const postLikeTable = pgTable('post_likes', {
 
 export const postCommentTable = pgTable('post_comments', {
 	id: serial('id').primaryKey().notNull(),
-	user_id: integer('user_id').references(() => userTable.id),
+	user_id: integer('user_id').references(() => usersTable.id),
 	post_id: integer('post_id').references(() => postTable.id),
 	comment: text('comment').notNull(),
 	created_at: timestamp('created_at').defaultNow().notNull(),
@@ -53,7 +53,7 @@ export const postCommentTable = pgTable('post_comments', {
 
 export const postShareTable = pgTable('post_shares', {
 	id: serial('id').primaryKey().notNull(),
-	user_id: integer('user_id').references(() => userTable.id),
+	user_id: integer('user_id').references(() => usersTable.id),
 	post_id: integer('post_id').references(() => postTable.id),
 	comment: text('comment').notNull(),
 	created_at: timestamp('created_at').defaultNow().notNull(),

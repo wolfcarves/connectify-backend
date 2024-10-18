@@ -3,7 +3,7 @@ import { postLikeTable, postTable } from '@/models/postTable';
 import type { CreatePostInput } from './post.schema';
 import { db } from '@/db';
 import { and, desc, eq } from 'drizzle-orm';
-import { userTable } from '@/models/userTable';
+import { usersTable } from '@/models/usersTable';
 
 export const addPost = async (
 	userId: number,
@@ -26,7 +26,7 @@ export const findAll = async (
 		.select()
 		.from(postTable)
 		.where(eq(postTable.user_id, paramUserId))
-		.innerJoin(userTable, eq(postTable.user_id, userTable.id))
+		.innerJoin(usersTable, eq(postTable.user_id, usersTable.id))
 		.leftJoin(
 			postLikeTable,
 			and(
@@ -59,7 +59,7 @@ export const findOne = async (sessionUserId: number, uuid: string) => {
 			.select()
 			.from(postTable)
 			.where(eq(postTable.uuid, uuid))
-			.innerJoin(userTable, eq(postTable.user_id, userTable.id))
+			.innerJoin(usersTable, eq(postTable.user_id, usersTable.id))
 			.leftJoin(
 				postLikeTable,
 				and(

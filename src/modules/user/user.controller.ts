@@ -2,14 +2,13 @@ import type { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import * as userService from './user.service';
 import type { QueryParams } from '@/types/request';
-import { generateId } from 'lucia';
 
 export const uploadUserProfileImage = asyncHandler(
 	async (req: Request, res: Response) => {
 		const file = req.file;
 		const user = res.locals.user!;
 
-		const result = await userService.uploadImage(user.id, file);
+		const result = await userService.uploadUserProfileImage(user.id, file);
 
 		res.status(200).send({
 			success: true,

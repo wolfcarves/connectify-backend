@@ -1,47 +1,11 @@
 import cloudinary from 'cloudinary';
 import { BadRequestException } from '@/exceptions/BadRequestException';
 import { db } from '@/db';
-import { eq, or } from 'drizzle-orm';
+import { eq, or, getTableColumns } from 'drizzle-orm';
 import { env } from '@/config/env';
-import { userTable } from '@/models/userTable';
+import { usersTable } from '@/models/usersTable';
 import crypto from 'crypto';
 import { avatarTable } from '@/models/avatarTable';
-
-export const findUserByEmail = async (email: string) => {
-	const user = (
-		await db
-			.select()
-			.from(userTable)
-			.where(eq(userTable.email, email))
-			.limit(1)
-	)[0];
-
-	return user;
-};
-
-export const findUserByUsername = async (username: string) => {
-	const user = (
-		await db
-			.select()
-			.from(userTable)
-			.where(eq(userTable.username, username))
-			.limit(1)
-	)[0];
-
-	return user;
-};
-
-export const findUserById = async (userId: number) => {
-	const user = (
-		await db
-			.select()
-			.from(userTable)
-			.where(eq(userTable.id, userId))
-			.limit(1)
-	)[0];
-
-	return user;
-};
 
 export const findUser = async ({
 	userId,
@@ -55,12 +19,12 @@ export const findUser = async ({
 	const user = (
 		await db
 			.select()
-			.from(userTable)
+			.from(usersTable)
 			.where(
 				or(
-					eq(userTable.id, userId ?? -1),
-					eq(userTable.username, username ?? ''),
-					eq(userTable.email, email ?? ''),
+					eq(usersTable.id, userId ?? -1),
+					eq(usersTable.username, username ?? ''),
+					eq(usersTable.email, email ?? ''),
 				),
 			)
 			.limit(1)
@@ -69,7 +33,22 @@ export const findUser = async ({
 	return user;
 };
 
-export const uploadImage = async (
+export const getAllUsers = async ({
+	limit = 100,
+	offset = 0,
+}: { offset?: number; limit?: number } = {}) => {
+	const { password, ...columns } = getTableColumns(usersTable);
+
+	const user = await db
+		.select(columns)
+		.from(usersTable)
+		.offset(offset)
+		.limit(limit);
+
+	return user;
+};
+
+export const uploadUserProfileImage = async (
 	userId: number,
 	file?: Express.Multer.File,
 ) => {
@@ -79,7 +58,7 @@ export const uploadImage = async (
 	const avatarId = `version-${version}-avatar-${userId}`;
 
 	const user = (
-		await db.select().from(userTable).where(eq(userTable.id, userId))
+		await db.select().from(usersTable).where(eq(usersTable.id, userId))
 	)[0];
 
 	await cloudinary.v2.uploader.destroy(
@@ -94,18 +73,18 @@ export const uploadImage = async (
 	});
 
 	await db
-		.update(userTable)
+		.update(usersTable)
 		.set({
 			avatar: avatarId,
 		})
-		.where(eq(userTable.id, userId));
+		.where(eq(usersTable.id, userId));
 
 	return 'Successfully Uploaded Image';
 };
 
 export const deleteUserProfileImage = async (userId: number) => {
 	const user = (
-		await db.select().from(userTable).where(eq(userTable.id, userId))
+		await db.select().from(usersTable).where(eq(usersTable.id, userId))
 	)[0];
 
 	await cloudinary.v2.uploader.destroy(
@@ -118,9 +97,9 @@ export const deleteUserProfileImage = async (userId: number) => {
 	const avatar = (await db.select().from(avatarTable))[0];
 
 	await db
-		.update(userTable)
+		.update(usersTable)
 		.set({
 			avatar: avatar?.avatar,
 		})
-		.where(eq(userTable.id, userId));
+		.where(eq(usersTable.id, userId));
 };

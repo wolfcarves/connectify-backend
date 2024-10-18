@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { and, asc, eq } from 'drizzle-orm';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import { checkLikeExistence, checkPostExistence } from './engagement.helper';
-import { userTable } from '@/models/userTable';
+import { usersTable } from '@/models/usersTable';
 
 export const likePost = async (userId: number, postId: number) => {
 	const isLiked = await checkLikeExistence(userId, postId);
@@ -57,9 +57,9 @@ export const getComments = async (postId: number) => {
 		.select({
 			id: postCommentTable.id,
 			user: {
-				id: userTable.id,
-				avatar: userTable.avatar,
-				name: userTable.name,
+				id: usersTable.id,
+				avatar: usersTable.avatar,
+				name: usersTable.name,
 			},
 			comment: postCommentTable.comment,
 			created_at: postCommentTable.created_at,
@@ -68,6 +68,6 @@ export const getComments = async (postId: number) => {
 		.from(postCommentTable)
 		.where(eq(postCommentTable.post_id, postId))
 		.innerJoin(postTable, eq(postCommentTable.post_id, postTable.id))
-		.innerJoin(userTable, eq(postCommentTable.user_id, userTable.id))
+		.innerJoin(usersTable, eq(postCommentTable.user_id, usersTable.id))
 		.orderBy(asc(postCommentTable.created_at));
 };

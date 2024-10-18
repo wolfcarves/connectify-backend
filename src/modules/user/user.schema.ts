@@ -9,6 +9,8 @@ export const userSchema = registry.register(
 		email: z.string().email(),
 		name: z.string(),
 		username: z.string(),
+		created_at: z.string(),
+		updated_at: z.string(),
 	}),
 );
 
