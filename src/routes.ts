@@ -4,7 +4,7 @@ import type { Express, Request, Response } from 'express';
 import OpenAPIDocs from './docs/openapi-docs.json' assert { type: 'json' };
 import SwaggerUI from 'swagger-ui-express';
 import AuthRouter from './modules/auth/auth.route';
-import FriendRouter from './modules/friends/friends.route';
+import FriendRouter from './modules/friend/friend.route';
 import HealthRouter from './modules/health/health.route';
 import PostRouter from './modules/post/post.route';
 import EngagementRouter from './modules/engagement/engagement.route';
@@ -19,7 +19,7 @@ export const renderRoutes = (app: Express) => {
 	apiRouter.use('/friends', FriendRouter);
 	apiRouter.use('/health', HealthRouter);
 	apiRouter.use('/post', PostRouter);
-	apiRouter.use('/post', EngagementRouter);
+	apiRouter.use('/engagement', EngagementRouter);
 	apiRouter.use('/user', UserRouter);
 
 	apiRouter.get('/health', (req: Request, res: Response) => {

@@ -21,7 +21,7 @@ EngagementRoute.post(
 
 EngagementDocumentation.getPostCommentsDocs();
 EngagementRoute.get(
-	'/comment/:postId',
+	'/comments/:postId',
 	requireAuth,
 	EngagementController.getComments,
 );

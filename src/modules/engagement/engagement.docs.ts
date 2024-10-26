@@ -12,7 +12,7 @@ export const likePostDocs = () => {
 	registry.registerPath({
 		tags: ['Engagement'],
 		method: 'post',
-		path: '/api/v1/post/like/{postId}',
+		path: '/api/v1/engagement/like/{postId}',
 		operationId: 'postLikePost',
 		summary: 'Like User Posts',
 		request: {
@@ -40,7 +40,7 @@ export const createPostCommentDocs = () => {
 	registry.registerPath({
 		tags: ['Engagement'],
 		method: 'post',
-		path: '/api/v1/post/comment/{postId}',
+		path: '/api/v1/engagement/comment/{postId}',
 		operationId: 'postPostComment',
 		summary: 'Comment To User Posts',
 		request: {
@@ -77,7 +77,7 @@ export const getPostCommentsDocs = () => {
 	registry.registerPath({
 		tags: ['Engagement'],
 		method: 'get',
-		path: '/api/v1/post/comment/{postId}',
+		path: '/api/v1/engagement/comments/{postId}',
 		operationId: 'getPostComments',
 		summary: 'Get Post Comments',
 		request: {

@@ -6,7 +6,7 @@ export const friendSuggestionsDocs = () => {
 	registry.registerPath({
 		tags: ['Friends'],
 		method: 'get',
-		path: '/api/v1/suggestions',
+		path: '/api/v1/friends/suggestions',
 		operationId: 'getFriendSuggestions',
 		responses: {
 			200: {
