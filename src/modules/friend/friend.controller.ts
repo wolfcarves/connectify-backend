@@ -60,7 +60,6 @@ export const getFriendRequests = asyncHandler(
 		const friendRequests = await friendService.getFriendRequests(user.id);
 
 		res.status(200).send({
-			success: true,
 			data: friendRequests,
 		});
 	},

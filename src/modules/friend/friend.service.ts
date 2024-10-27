@@ -1,69 +1,52 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { db } from '@/db';
 import { BadRequestException } from '@/exceptions/BadRequestException';
 import { NotFoundException } from '@/exceptions/NotFoundException';
-import { friendsTable } from '@/models/friendsTable';
+import { friendRequestsTable, friendshipsTable } from '@/models/friendsTable';
 import { usersTable } from '@/models/usersTable';
 import { and, eq, or } from 'drizzle-orm';
+import { type PostgresError } from 'postgres';
+import { checkIfFriend } from './friend.helper';
 
 export const sendFriendRequest = async (
 	senderId: number,
 	receiverId: number,
 ) => {
-	if (!senderId || !receiverId) throw new NotFoundException('User not found');
-
-	if (senderId === Number(receiverId))
-		throw new BadRequestException('You not add yourself');
-
-	const requestExists = (await getFriendList(receiverId))[0];
-
-	if (requestExists)
-		throw new BadRequestException('User already sent you a request');
-
-	const isRequestSent = (
-		await db
-			.select()
-			.from(friendsTable)
-			.where(
-				or(
-					and(
-						eq(friendsTable.user_id, senderId),
-						eq(friendsTable.friend_id, receiverId),
-						eq(friendsTable.is_accepted, false),
-					),
-					and(
-						eq(friendsTable.user_id, receiverId),
-						eq(friendsTable.friend_id, senderId),
-						eq(friendsTable.is_accepted, false),
-					),
-				),
-			)
-	)[0];
-
-	if (isRequestSent) {
-		await db
-			.delete(friendsTable)
-			.where(
-				and(
-					eq(friendsTable.user_id, senderId),
-					eq(friendsTable.friend_id, receiverId),
-					eq(friendsTable.is_accepted, false),
-				),
-			);
-
-		return {
-			message: 'Withdrew Request',
-		};
+	if (!senderId || !receiverId) {
+		throw new NotFoundException('User not found');
 	}
 
+	if (senderId === Number(receiverId))
+		throw new BadRequestException('You cannot add yourself');
+
 	try {
-		await db.insert(friendsTable).values({
-			user_id: senderId,
-			friend_id: receiverId,
+		const isFriend = await checkIfFriend(senderId, receiverId);
+
+		if (isFriend)
+			throw new BadRequestException('This user is already user friend');
+
+		await db.insert(friendRequestsTable).values({
+			sender_id: senderId,
+			receiver_id: receiverId,
 		});
 	} catch (error) {
-		throw new NotFoundException('User not found');
+		const err = error as PostgresError;
+
+		// No user
+		if (err.code === '23503') throw new NotFoundException('User not found');
+
+		// Request exists
+		if (err.code === '23505') {
+			await db
+				.delete(friendRequestsTable)
+				.where(
+					and(
+						eq(friendRequestsTable.sender_id, senderId),
+						eq(friendRequestsTable.receiver_id, receiverId),
+					),
+				);
+		}
+
+		throw err;
 	}
 
 	return {
@@ -74,129 +57,89 @@ export const sendFriendRequest = async (
 export const getFriendRequests = async (userId: number) => {
 	const friendRequest = await db
 		.select({
-			id: friendsTable.id,
+			id: friendRequestsTable.id,
 			user: {
 				id: usersTable.id,
 				avatar: usersTable.avatar,
 				name: usersTable.name,
 			},
-			is_accepted: friendsTable.is_accepted,
+			status: friendRequestsTable.status,
 		})
-		.from(friendsTable)
+		.from(friendRequestsTable)
 		.where(
 			and(
-				eq(friendsTable.friend_id, userId),
-				eq(friendsTable.is_accepted, false),
+				eq(friendRequestsTable.receiver_id, userId),
+				eq(friendRequestsTable.status, 'pending'),
 			),
 		)
-		.innerJoin(usersTable, eq(usersTable.id, friendsTable.user_id));
+		.innerJoin(
+			usersTable,
+			eq(usersTable.id, friendRequestsTable.sender_id),
+		);
 
 	return friendRequest;
 };
 
 export const acceptFriendRequest = async (userId: number, friendId: number) => {
-	const isAccepted = (
+	try {
+		const isFriend = await checkIfFriend(userId, friendId);
+
+		if (isFriend) throw new NotFoundException('No user to accept');
+
 		await db
-			.select()
-			.from(friendsTable)
+			.update(friendRequestsTable)
+			.set({
+				status: 'accepted',
+			})
 			.where(
 				and(
-					eq(friendsTable.user_id, friendId),
-					eq(friendsTable.friend_id, userId),
-					eq(friendsTable.is_accepted, true),
+					eq(friendRequestsTable.sender_id, friendId),
+					eq(friendRequestsTable.receiver_id, userId),
+					eq(friendRequestsTable.status, 'pending'),
 				),
-			)
-	)[0];
+			);
 
-	const isExists = (
-		await db
-			.select()
-			.from(friendsTable)
-			.where(
-				and(
-					eq(friendsTable.user_id, friendId),
-					eq(friendsTable.friend_id, userId),
-				),
-			)
-	)[0]?.id;
-
-	if (isAccepted)
-		throw new BadRequestException('User is already your friend');
-
-	if (!isExists) {
-		throw new NotFoundException('User not found');
+		await db.insert(friendshipsTable).values({
+			user_id: userId,
+			friend_id: friendId,
+		});
+	} catch (error) {
+		throw new NotFoundException('No user to accept');
 	}
-
-	await db
-		.update(friendsTable)
-		.set({
-			is_accepted: true,
-		})
-		.where(
-			and(
-				eq(friendsTable.user_id, friendId),
-				eq(friendsTable.friend_id, userId),
-				eq(friendsTable.is_accepted, false),
-			),
-		);
-
-	return false;
 };
 
 export const getFriendList = async (userId: number) => {
-	const response = await db
-		.select()
-		.from(friendsTable)
-		.where(
-			or(
-				eq(friendsTable.user_id, userId),
-				eq(friendsTable.friend_id, userId),
-				eq(friendsTable.is_accepted, true),
-			),
-		);
+	const friendList = await db
+		.select({
+			id: friendshipsTable.id,
+			user: {
+				id: usersTable.id,
+				name: usersTable.avatar,
+				avatar: usersTable.avatar,
+				created_at: usersTable.created_at,
+			},
+		})
+		.from(friendshipsTable)
+		.where(eq(friendshipsTable.user_id, userId))
+		.innerJoin(usersTable, eq(friendshipsTable.user_id, usersTable.id));
 
-	return response;
+	return friendList;
 };
 
 export const unfriendUser = async (userId: number, friendId: number) => {
 	const response = (
 		await db
-			.select()
-			.from(friendsTable)
+			.delete(friendshipsTable)
 			.where(
 				or(
-					and(
-						eq(friendsTable.user_id, userId),
-						eq(friendsTable.friend_id, friendId),
-						eq(friendsTable.is_accepted, true),
-					),
-					and(
-						eq(friendsTable.user_id, friendId),
-						eq(friendsTable.friend_id, userId),
-						eq(friendsTable.is_accepted, true),
-					),
+					eq(friendshipsTable.user_id, userId),
+					eq(friendshipsTable.friend_id, friendId),
 				),
 			)
+			.returning({ userId: friendshipsTable.id })
 	)[0];
 
-	if (!response) throw new NotFoundException('User not found');
-
-	await db
-		.delete(friendsTable)
-		.where(
-			or(
-				and(
-					eq(friendsTable.user_id, userId),
-					eq(friendsTable.friend_id, friendId),
-					eq(friendsTable.is_accepted, true),
-				),
-				and(
-					eq(friendsTable.user_id, friendId),
-					eq(friendsTable.friend_id, userId),
-					eq(friendsTable.is_accepted, true),
-				),
-			),
-		);
+	if (!response) throw new NotFoundException('No user to unfriend');
 
 	return response;
 };

@@ -12,22 +12,27 @@ FriendRouter.get(
 	FriendsController.getFriendsSuggestions,
 );
 
+FriendsDocs.sendFriendRequestDocs();
 FriendRouter.post(
 	'/request/send',
 	requireAuth,
 	FriendsController.sendFriendRequest,
 );
 
-FriendRouter.get('/request', requireAuth, FriendsController.getFriendRequests);
+FriendsDocs.getFriendRequestsDocs();
+FriendRouter.get('/requests', requireAuth, FriendsController.getFriendRequests);
 
+FriendsDocs.acceptFriendRequestDocs();
 FriendRouter.post(
 	'/request/accept/:friendId',
 	requireAuth,
 	FriendsController.acceptFriendRequest,
 );
 
-FriendRouter.get('/', requireAuth, FriendsController.getFriendList);
+FriendsDocs.getFriendListDocs();
+FriendRouter.get('/list', requireAuth, FriendsController.getFriendList);
 
+FriendsDocs.unfriendUserDocs();
 FriendRouter.delete(
 	'/remove/:friendId',
 	requireAuth,
