@@ -44,6 +44,10 @@ export const sendFriendRequest = async (
 						eq(friendRequestsTable.receiver_id, receiverId),
 					),
 				);
+
+			return {
+				message: 'Withdrew request.',
+			};
 		}
 
 		throw err;

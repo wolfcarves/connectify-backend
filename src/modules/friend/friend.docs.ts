@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { userSchema } from '../user/user.schema';
 import { successResponseSchema } from '@/schema/responseSchema';
 import {
-	badRequestErrorResponse,
 	notFoundErrorResponse,
 	serverErrorResponse,
 } from '@/helper/commonErrorResponse';
@@ -132,6 +131,11 @@ export const unfriendUserDocs = () => {
 		method: 'delete',
 		path: '/api/v1/friends/remove/{friendId}',
 		operationId: 'unfriendUser',
+		request: {
+			params: z.object({
+				friendId: z.string(),
+			}),
+		},
 		responses: {
 			200: {
 				description: 'OK',
