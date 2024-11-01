@@ -14,9 +14,16 @@ FriendRouter.get(
 
 FriendsDocs.sendFriendRequestDocs();
 FriendRouter.post(
-	'/request/send',
+	'/request/send/:receiverId',
 	requireAuth,
 	FriendsController.sendFriendRequest,
+);
+
+FriendsDocs.cancelFriendRequestDocs();
+FriendRouter.delete(
+	'/request/cancel/:receiverId',
+	requireAuth,
+	FriendsController.cancelFriendRequest,
 );
 
 FriendsDocs.getFriendRequestsDocs();

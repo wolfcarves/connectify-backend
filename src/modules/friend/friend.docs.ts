@@ -1,14 +1,15 @@
 import { registry } from '@/lib/zodToOpenAPI';
 import { z } from 'zod';
-import { userSchema } from '../user/user.schema';
 import { successResponseSchema } from '@/schema/responseSchema';
 import {
+	badRequestErrorResponse,
 	notFoundErrorResponse,
 	serverErrorResponse,
 } from '@/helper/commonErrorResponse';
 import {
 	getFriendListResponseSchema,
 	getFriendRequestResponseSchema,
+	getFriendSuggestionsResponseSchema,
 } from './friend.schema';
 
 export const friendSuggestionsDocs = () => {
@@ -22,9 +23,7 @@ export const friendSuggestionsDocs = () => {
 				description: 'OK',
 				content: {
 					'application/json': {
-						schema: z.object({
-							data: z.array(userSchema),
-						}),
+						schema: getFriendSuggestionsResponseSchema,
 					},
 				},
 			},
@@ -38,10 +37,10 @@ export const sendFriendRequestDocs = () => {
 	registry.registerPath({
 		tags: ['Friends'],
 		method: 'post',
-		path: '/api/v1/friends/request/send',
+		path: '/api/v1/friends/request/send/{receiverId}',
 		operationId: 'sendFriendRequest',
 		request: {
-			query: z.object({
+			params: z.object({
 				receiverId: z.string(),
 			}),
 		},
@@ -54,6 +53,33 @@ export const sendFriendRequestDocs = () => {
 					},
 				},
 			},
+			...notFoundErrorResponse,
+			...serverErrorResponse,
+		},
+	});
+};
+
+export const cancelFriendRequestDocs = () => {
+	registry.registerPath({
+		tags: ['Friends'],
+		method: 'delete',
+		path: '/api/v1/friends/request/cancel/{receiverId}',
+		operationId: 'cancelFriendRequest',
+		request: {
+			params: z.object({
+				receiverId: z.string(),
+			}),
+		},
+		responses: {
+			200: {
+				description: 'OK',
+				content: {
+					'application/json': {
+						schema: successResponseSchema,
+					},
+				},
+			},
+			...badRequestErrorResponse,
 			...notFoundErrorResponse,
 			...serverErrorResponse,
 		},

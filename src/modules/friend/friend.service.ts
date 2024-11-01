@@ -3,11 +3,52 @@ import { BadRequestException } from '@/exceptions/BadRequestException';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import { friendRequestsTable, friendshipsTable } from '@/models/friendsTable';
 import { usersTable } from '@/models/usersTable';
-import { and, eq, or } from 'drizzle-orm';
+import { and, desc, eq, ne, or } from 'drizzle-orm';
 import { type PostgresError } from 'postgres';
 import { checkIfFriend } from './friend.helper';
 
-export const sendFriendRequest = async (
+export const getFriendsSuggestions = async (
+	userId: number,
+	latestUserId: number,
+) => {
+	let id = 0;
+
+	if (!latestUserId) {
+		id = (
+			await db.select().from(usersTable).orderBy(desc(usersTable.id))
+		)?.[0].id;
+	}
+
+	const limit = 30;
+	const friendRequestOffset = id < limit ? 0 : id;
+
+	const suggestedFriends = await db
+		.select({
+			id: usersTable.id,
+			avatar: usersTable.avatar,
+			name: usersTable.name,
+			username: usersTable.username,
+			status: friendRequestsTable.status,
+		})
+		.from(usersTable)
+		.leftJoin(
+			friendRequestsTable,
+			and(
+				eq(friendRequestsTable.sender_id, userId),
+				eq(friendRequestsTable.receiver_id, usersTable.id),
+			),
+		)
+		.where(ne(usersTable.id, userId))
+		.offset(friendRequestOffset)
+		.limit(limit);
+
+	return {
+		suggestedFriends,
+		friendRequestOffset,
+	};
+};
+
+export const createFriendRequest = async (
 	senderId: number,
 	receiverId: number,
 ) => {
@@ -24,10 +65,12 @@ export const sendFriendRequest = async (
 		if (isFriend)
 			throw new BadRequestException('This user is already user friend');
 
-		await db.insert(friendRequestsTable).values({
+		const response = await db.insert(friendRequestsTable).values({
 			sender_id: senderId,
 			receiver_id: receiverId,
 		});
+
+		return response;
 	} catch (error) {
 		const err = error as PostgresError;
 
@@ -35,27 +78,39 @@ export const sendFriendRequest = async (
 		if (err.code === '23503') throw new NotFoundException('User not found');
 
 		// Request exists
-		if (err.code === '23505') {
-			await db
-				.delete(friendRequestsTable)
-				.where(
-					and(
-						eq(friendRequestsTable.sender_id, senderId),
-						eq(friendRequestsTable.receiver_id, receiverId),
-					),
-				);
-
-			return {
-				message: 'Withdrew request.',
-			};
-		}
+		if (err.code === '23505')
+			throw new BadRequestException('Friend request already sent');
 
 		throw err;
 	}
+};
 
-	return {
-		message: 'Friend Request Sent!',
-	};
+export const deleteFriendRequest = async (
+	senderId: number,
+	receiverId: number,
+) => {
+	if (!senderId || !receiverId) {
+		throw new NotFoundException('User not found');
+	}
+
+	if (senderId === Number(receiverId))
+		throw new BadRequestException('You cannot unfriend yourself');
+
+	const response = (
+		await db
+			.delete(friendRequestsTable)
+			.where(
+				and(
+					eq(friendRequestsTable.sender_id, senderId),
+					eq(friendRequestsTable.receiver_id, receiverId),
+				),
+			)
+			.returning({ id: friendRequestsTable.sender_id })
+	)[0];
+
+	if (!response) throw new BadRequestException('No one to unfriend');
+
+	return response;
 };
 
 export const getFriendRequests = async (userId: number) => {

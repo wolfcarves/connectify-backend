@@ -1,6 +1,5 @@
 import type { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import * as userService from '../user/user.service';
 import * as friendService from '../friend/friend.service';
 
 export const getFriendsSuggestions = asyncHandler(
@@ -8,6 +7,10 @@ export const getFriendsSuggestions = asyncHandler(
 		req: Request<never, never, { ip?: string }, never>,
 		res: Response,
 	) => {
+		const userId = res.locals.user!.id;
+		//This is for remembering offset to avoid invalidation issues
+		const latestUserId = req.cookies.latestUserId;
+
 		// const { ip } = req.body;
 
 		// if (ip) {
@@ -23,8 +26,13 @@ export const getFriendsSuggestions = asyncHandler(
 		// 	});
 		// }
 
-		const suggestedFriends = await userService.getAllUsers({
-			limit: 30,
+		const { friendRequestOffset, suggestedFriends } =
+			await friendService.getFriendsSuggestions(userId, latestUserId);
+
+		res.cookie('friendRequestOffset', friendRequestOffset, {
+			path: '/',
+			httpOnly: true,
+			maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
 		});
 
 		res.status(200).json({
@@ -35,20 +43,40 @@ export const getFriendsSuggestions = asyncHandler(
 
 export const sendFriendRequest = asyncHandler(
 	async (
-		req: Request<never, never, never, { receiverId: string }>,
+		req: Request<{ receiverId: string }, never, never, never>,
 		res: Response,
 	) => {
 		const senderId = res.locals.user!.id;
-		const { receiverId } = req.query;
+		const { receiverId } = req.params;
 
-		const response = await friendService.sendFriendRequest(
+		await friendService.createFriendRequest(
 			Number(senderId),
 			Number(receiverId),
 		);
 
 		res.status(200).send({
 			success: true,
-			message: response.message,
+			message: 'Friend Request Sent',
+		});
+	},
+);
+
+export const cancelFriendRequest = asyncHandler(
+	async (
+		req: Request<{ receiverId: string }, never, never, never>,
+		res: Response,
+	) => {
+		const senderId = res.locals.user!.id;
+		const { receiverId } = req.params;
+
+		await friendService.deleteFriendRequest(
+			Number(senderId),
+			Number(receiverId),
+		);
+
+		res.status(200).send({
+			success: true,
+			message: 'Friend Request Cancelled',
 		});
 	},
 );
