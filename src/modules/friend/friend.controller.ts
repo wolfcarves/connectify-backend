@@ -63,15 +63,15 @@ export const sendFriendRequest = asyncHandler(
 
 export const cancelFriendRequest = asyncHandler(
 	async (
-		req: Request<{ receiverId: string }, never, never, never>,
+		req: Request<{ requesterId: string }, never, never, never>,
 		res: Response,
 	) => {
-		const senderId = res.locals.user!.id;
-		const { receiverId } = req.params;
+		const userId = res.locals.user!.id;
+		const { requesterId } = req.params;
 
 		await friendService.deleteFriendRequest(
-			Number(senderId),
-			Number(receiverId),
+			Number(userId),
+			Number(requesterId),
 		);
 
 		res.status(200).send({

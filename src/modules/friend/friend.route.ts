@@ -21,7 +21,7 @@ FriendRouter.post(
 
 FriendsDocs.cancelFriendRequestDocs();
 FriendRouter.delete(
-	'/request/cancel/:receiverId',
+	'/request/cancel/:requesterId',
 	requireAuth,
 	FriendsController.cancelFriendRequest,
 );

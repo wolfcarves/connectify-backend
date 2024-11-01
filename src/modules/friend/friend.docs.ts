@@ -63,11 +63,11 @@ export const cancelFriendRequestDocs = () => {
 	registry.registerPath({
 		tags: ['Friends'],
 		method: 'delete',
-		path: '/api/v1/friends/request/cancel/{receiverId}',
+		path: '/api/v1/friends/request/cancel/{requesterId}',
 		operationId: 'cancelFriendRequest',
 		request: {
 			params: z.object({
-				receiverId: z.string(),
+				requesterId: z.string(),
 			}),
 		},
 		responses: {

@@ -3,7 +3,7 @@ import { BadRequestException } from '@/exceptions/BadRequestException';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import { friendRequestsTable, friendshipsTable } from '@/models/friendsTable';
 import { usersTable } from '@/models/usersTable';
-import { and, desc, eq, ne, or } from 'drizzle-orm';
+import { and, desc, eq, ne, notExists, or } from 'drizzle-orm';
 import { type PostgresError } from 'postgres';
 import { checkIfFriend } from './friend.helper';
 
@@ -38,7 +38,39 @@ export const getFriendsSuggestions = async (
 				eq(friendRequestsTable.receiver_id, usersTable.id),
 			),
 		)
-		.where(ne(usersTable.id, userId))
+		.where(
+			and(
+				ne(usersTable.id, userId),
+				notExists(
+					db
+						.select()
+						.from(friendRequestsTable)
+						.where(
+							eq(friendRequestsTable.sender_id, usersTable.id),
+						),
+				),
+				notExists(
+					db
+						.select()
+						.from(friendshipsTable)
+						.where(
+							or(
+								and(
+									eq(friendshipsTable.user_id, userId),
+									eq(
+										friendshipsTable.friend_id,
+										usersTable.id,
+									),
+								),
+								and(
+									eq(friendshipsTable.user_id, usersTable.id),
+									eq(friendshipsTable.friend_id, userId),
+								),
+							),
+						),
+				),
+			),
+		)
 		.offset(friendRequestOffset)
 		.limit(limit);
 
@@ -86,29 +118,35 @@ export const createFriendRequest = async (
 };
 
 export const deleteFriendRequest = async (
-	senderId: number,
-	receiverId: number,
+	userId: number,
+	requesterId: number,
 ) => {
-	if (!senderId || !receiverId) {
+	if (!userId || !requesterId) {
 		throw new NotFoundException('User not found');
 	}
 
-	if (senderId === Number(receiverId))
+	if (userId === Number(requesterId))
 		throw new BadRequestException('You cannot unfriend yourself');
 
 	const response = (
 		await db
 			.delete(friendRequestsTable)
 			.where(
-				and(
-					eq(friendRequestsTable.sender_id, senderId),
-					eq(friendRequestsTable.receiver_id, receiverId),
+				or(
+					and(
+						eq(friendRequestsTable.sender_id, userId),
+						eq(friendRequestsTable.receiver_id, requesterId),
+					),
+					and(
+						eq(friendRequestsTable.sender_id, requesterId),
+						eq(friendRequestsTable.receiver_id, userId),
+					),
 				),
 			)
 			.returning({ id: friendRequestsTable.sender_id })
 	)[0];
 
-	if (!response) throw new BadRequestException('No one to unfriend');
+	if (!response) throw new BadRequestException('Nothing to delete');
 
 	return response;
 };
@@ -121,6 +159,7 @@ export const getFriendRequests = async (userId: number) => {
 				id: usersTable.id,
 				avatar: usersTable.avatar,
 				name: usersTable.name,
+				username: usersTable.username,
 			},
 			status: friendRequestsTable.status,
 		})
