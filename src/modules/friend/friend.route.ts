@@ -37,7 +37,7 @@ FriendRouter.post(
 );
 
 FriendsDocs.getFriendListDocs();
-FriendRouter.get('/list', requireAuth, FriendsController.getFriendList);
+FriendRouter.get('/list/:userId', requireAuth, FriendsController.getFriendList);
 
 FriendsDocs.unfriendUserDocs();
 FriendRouter.delete(

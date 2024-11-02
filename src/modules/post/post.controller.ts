@@ -38,7 +38,7 @@ export const getUserPosts = asyncHandler(
 		const page = Number(req.query.page) ?? 1;
 		const per_page = Number(req.query.per_page) ?? 10;
 
-		const user = await userService.findUser({ username: paramsUsername });
+		const user = await userService.getUser({ username: paramsUsername });
 
 		const posts = await postService.findAll(
 			sessionUserId,

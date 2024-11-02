@@ -209,17 +209,26 @@ export const acceptFriendRequest = async (userId: number, friendId: number) => {
 export const getFriendList = async (userId: number) => {
 	const friendList = await db
 		.select({
-			id: friendshipsTable.id,
-			user: {
-				id: usersTable.id,
-				name: usersTable.avatar,
-				avatar: usersTable.avatar,
-				created_at: usersTable.created_at,
-			},
+			id: usersTable.id,
+			name: usersTable.name,
+			username: usersTable.username,
+			avatar: usersTable.avatar,
+			created_at: usersTable.created_at,
 		})
 		.from(friendshipsTable)
-		.where(eq(friendshipsTable.user_id, userId))
-		.innerJoin(usersTable, eq(friendshipsTable.user_id, usersTable.id));
+		.innerJoin(
+			usersTable,
+			or(
+				and(
+					eq(friendshipsTable.user_id, userId),
+					eq(friendshipsTable.friend_id, usersTable.id),
+				),
+				and(
+					eq(friendshipsTable.user_id, usersTable.id),
+					eq(friendshipsTable.friend_id, userId),
+				),
+			),
+		);
 
 	return friendList;
 };

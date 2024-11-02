@@ -32,14 +32,11 @@ export const getFriendRequestResponseSchema = z.object({
 
 export const getFriendListResponseSchema = z.object({
 	data: z.array(
-		z.object({
-			id: z.number(),
-			user: userSchema.pick({
-				id: true,
-				name: true,
-				avatar: true,
-			}),
-			created_at: z.string(),
+		userSchema.pick({
+			id: true,
+			avatar: true,
+			name: true,
+			username: true,
 		}),
 	),
 });

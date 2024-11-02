@@ -7,7 +7,7 @@ import { usersTable } from '@/models/usersTable';
 import crypto from 'crypto';
 import { avatarTable } from '@/models/avatarTable';
 
-export const findUser = async ({
+export const getUser = async ({
 	userId,
 	username,
 	email,

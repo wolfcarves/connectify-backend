@@ -15,3 +15,14 @@ export const userSchema = registry.register(
 );
 
 export type UserSchema = z.infer<typeof userSchema>;
+
+export const getUserProfileResponseSchema = registry.register(
+	'GetuserProfileResponseSchema',
+	z.object({
+		data: userSchema.extend({
+			isFriend: z.boolean(),
+			hasRequest: z.boolean(),
+			requestFrom: z.enum(['us', 'them']).nullish(),
+		}),
+	}),
+);

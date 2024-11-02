@@ -136,7 +136,12 @@ export const getFriendListDocs = () => {
 	registry.registerPath({
 		tags: ['Friends'],
 		method: 'get',
-		path: '/api/v1/friends/list',
+		request: {
+			params: z.object({
+				userId: z.number(),
+			}),
+		},
+		path: '/api/v1/friends/list/{userId}',
 		operationId: 'getFriendList',
 		responses: {
 			200: {

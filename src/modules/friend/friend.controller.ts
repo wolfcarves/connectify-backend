@@ -111,10 +111,13 @@ export const acceptFriendRequest = asyncHandler(
 );
 
 export const getFriendList = asyncHandler(
-	async (req: Request, res: Response) => {
-		const userId = res.locals.user!.id;
+	async (
+		req: Request<{ userId: string }, never, never, never>,
+		res: Response,
+	) => {
+		const { userId } = req.params;
 
-		const response = await friendService.getFriendList(userId);
+		const response = await friendService.getFriendList(Number(userId));
 
 		res.status(200).send({
 			data: response,

@@ -7,7 +7,7 @@ import {
 } from '@/helper/commonErrorResponse';
 import { successResponseSchema } from '@/schema/responseSchema';
 import { z } from 'zod';
-import { userSchema } from './user.schema';
+import { getUserProfileResponseSchema, userSchema } from './user.schema';
 
 export const uploadUserProfileImageDocs = () => {
 	registry.registerPath({
@@ -89,9 +89,7 @@ export const getUserProfileDocs = () => {
 				description: 'OK',
 				content: {
 					'application/json': {
-						schema: z.object({
-							data: userSchema,
-						}),
+						schema: getUserProfileResponseSchema,
 					},
 				},
 			},
