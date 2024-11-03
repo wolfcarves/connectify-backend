@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import * as friendService from '../friend/friend.service';
+import { checkFriendStatus } from './friend.helper';
 
 export const getFriendsSuggestions = asyncHandler(
 	async (
@@ -10,21 +11,6 @@ export const getFriendsSuggestions = asyncHandler(
 		const userId = res.locals.user!.id;
 		//This is for remembering offset to avoid invalidation issues
 		const latestUserId = req.cookies.latestUserId;
-
-		// const { ip } = req.body;
-
-		// if (ip) {
-		// 	const fetchLocation = await fetch(`https://ipapi.co/${ip}/json`);
-		// 	const location = await fetchLocation.json();
-
-		// 	const suggestedFriends = await userService.getAllUsers({
-		// 		limit: 20,
-		// 	});
-
-		// 	res.status(200).json({
-		// 		data: suggestedFriends,
-		// 	});
-		// }
 
 		const { friendRequestOffset, suggestedFriends } =
 			await friendService.getFriendsSuggestions(userId, latestUserId);
@@ -115,9 +101,13 @@ export const getFriendList = asyncHandler(
 		req: Request<{ userId: string }, never, never, never>,
 		res: Response,
 	) => {
+		const user = res.locals.user!;
 		const { userId } = req.params;
 
-		const response = await friendService.getFriendList(Number(userId));
+		const response = await friendService.getFriendList(
+			user.id,
+			Number(userId),
+		);
 
 		res.status(200).send({
 			data: response,
@@ -141,3 +131,18 @@ export const unfriendUser = asyncHandler(
 		});
 	},
 );
+
+// const { ip } = req.body;
+
+// if (ip) {
+// 	const fetchLocation = await fetch(`https://ipapi.co/${ip}/json`);
+// 	const location = await fetchLocation.json();
+
+// 	const suggestedFriends = await userService.getAllUsers({
+// 		limit: 20,
+// 	});
+
+// 	res.status(200).json({
+// 		data: suggestedFriends,
+// 	});
+// }

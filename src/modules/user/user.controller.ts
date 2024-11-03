@@ -2,10 +2,7 @@ import type { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import * as userService from './user.service';
 import type { QueryParams } from '@/types/request';
-import {
-	checkIfFriend,
-	checkIfHasFriendRequest,
-} from '../friend/friend.helper';
+import { checkFriendStatus } from '../friend/friend.helper';
 
 export const uploadUserProfileImage = asyncHandler(
 	async (req: Request, res: Response) => {
@@ -34,20 +31,17 @@ export const getUserProfile = asyncHandler(
 		};
 
 		const result = await userService.getUser(query);
-		const isFriend = await checkIfFriend(user?.id, result.id);
-		const { hasRequest, requestFrom } = await checkIfHasFriendRequest(
-			user?.id,
-			result.id,
-			isFriend,
-		);
+
+		const { is_friend, has_request, request_from } =
+			await checkFriendStatus(user?.id, result.id);
 
 		res.status(200).send({
 			success: true,
 			data: {
 				...result,
-				isFriend,
-				hasRequest,
-				requestFrom,
+				is_friend,
+				has_request,
+				request_from,
 			},
 		});
 	},

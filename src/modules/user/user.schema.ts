@@ -20,9 +20,9 @@ export const getUserProfileResponseSchema = registry.register(
 	'GetuserProfileResponseSchema',
 	z.object({
 		data: userSchema.extend({
-			isFriend: z.boolean(),
-			hasRequest: z.boolean(),
-			requestFrom: z.enum(['us', 'them']).nullish(),
+			is_friend: z.boolean(),
+			has_request: z.boolean(),
+			request_from: z.enum(['us', 'them']).nullish(),
 		}),
 	}),
 );

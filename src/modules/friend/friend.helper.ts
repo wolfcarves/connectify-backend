@@ -2,8 +2,8 @@ import { friendRequestsTable, friendshipsTable } from '@/models/friendsTable';
 import { and, eq, or } from 'drizzle-orm';
 import { db } from '@/db';
 
-export const checkIfFriend = async (userId: number, friendId: number) => {
-	const isFriend = !!(
+export const checkFriendStatus = async (userId: number, friendId: number) => {
+	const is_friend = !!(
 		await db
 			.select()
 			.from(friendshipsTable)
@@ -21,15 +21,7 @@ export const checkIfFriend = async (userId: number, friendId: number) => {
 			)
 	)?.[0];
 
-	return isFriend;
-};
-
-export const checkIfHasFriendRequest = async (
-	userId: number,
-	friendId: number,
-	isFriend: boolean,
-) => {
-	const hasRequestFromUs = !!(
+	const hasrequest_fromUs = !!(
 		await db
 			.select()
 			.from(friendRequestsTable)
@@ -41,7 +33,7 @@ export const checkIfHasFriendRequest = async (
 			)
 	)?.[0];
 
-	const hasRequestFromThem = !!(
+	const hasrequest_fromThem = !!(
 		await db
 			.select()
 			.from(friendRequestsTable)
@@ -54,10 +46,13 @@ export const checkIfHasFriendRequest = async (
 	)?.[0];
 
 	return {
-		hasRequest: isFriend ? false : hasRequestFromUs || hasRequestFromThem,
-		requestFrom: hasRequestFromUs
+		is_friend,
+		has_request: is_friend
+			? false
+			: hasrequest_fromUs || hasrequest_fromThem,
+		request_from: hasrequest_fromUs
 			? 'us'
-			: hasRequestFromThem
+			: hasrequest_fromThem
 				? 'them'
 				: null,
 	};

@@ -3,9 +3,9 @@ import { BadRequestException } from '@/exceptions/BadRequestException';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import { friendRequestsTable, friendshipsTable } from '@/models/friendsTable';
 import { usersTable } from '@/models/usersTable';
-import { and, desc, eq, ne, notExists, or } from 'drizzle-orm';
+import { and, desc, eq, ne, notExists, or, sql } from 'drizzle-orm';
 import { type PostgresError } from 'postgres';
-import { checkIfFriend } from './friend.helper';
+import { checkFriendStatus } from './friend.helper';
 
 export const getFriendsSuggestions = async (
 	userId: number,
@@ -46,7 +46,13 @@ export const getFriendsSuggestions = async (
 						.select()
 						.from(friendRequestsTable)
 						.where(
-							eq(friendRequestsTable.sender_id, usersTable.id),
+							and(
+								eq(
+									friendRequestsTable.sender_id,
+									usersTable.id,
+								),
+								eq(friendRequestsTable.receiver_id, userId),
+							),
 						),
 				),
 				notExists(
@@ -92,9 +98,9 @@ export const createFriendRequest = async (
 		throw new BadRequestException('You cannot add yourself');
 
 	try {
-		const isFriend = await checkIfFriend(senderId, receiverId);
+		const { is_friend } = await checkFriendStatus(senderId, receiverId);
 
-		if (isFriend)
+		if (is_friend)
 			throw new BadRequestException('This user is already user friend');
 
 		const response = await db.insert(friendRequestsTable).values({
@@ -180,9 +186,9 @@ export const getFriendRequests = async (userId: number) => {
 
 export const acceptFriendRequest = async (userId: number, friendId: number) => {
 	try {
-		const isFriend = await checkIfFriend(userId, friendId);
+		const { is_friend } = await checkFriendStatus(userId, friendId);
 
-		if (isFriend) throw new NotFoundException('No user to accept');
+		if (is_friend) throw new NotFoundException('No user to accept');
 
 		await db
 			.update(friendRequestsTable)
@@ -206,29 +212,66 @@ export const acceptFriendRequest = async (userId: number, friendId: number) => {
 	}
 };
 
-export const getFriendList = async (userId: number) => {
-	const friendList = await db
-		.select({
-			id: usersTable.id,
-			name: usersTable.name,
-			username: usersTable.username,
-			avatar: usersTable.avatar,
-			created_at: usersTable.created_at,
-		})
-		.from(friendshipsTable)
-		.innerJoin(
-			usersTable,
-			or(
-				and(
-					eq(friendshipsTable.user_id, userId),
-					eq(friendshipsTable.friend_id, usersTable.id),
-				),
-				and(
-					eq(friendshipsTable.user_id, usersTable.id),
-					eq(friendshipsTable.friend_id, userId),
-				),
-			),
-		);
+export const getFriendList = async (sessionUserId: number, userId: number) => {
+	const friendListQuery = sql.raw(
+		`SELECT DISTINCT on (u."id")
+			u."id",
+			u."name",
+			u."username",
+			u."avatar",
+			u."created_at",
+			CASE
+				WHEN 
+					f2."user_id" = u."id" 
+				OR
+					f2."friend_id" = u."id" 
+				THEN TRUE
+				ELSE FALSE
+			END AS is_friend,
+			CASE
+				WHEN 
+					f3."sender_id" = u."id" 
+				OR
+					f3."receiver_id" = u."id" 
+				THEN TRUE
+				ELSE FALSE
+			END AS has_request,
+			CASE
+				WHEN f3."sender_id" = ${sessionUserId} THEN 'us'
+				WHEN f3."receiver_id" = ${sessionUserId} THEN 'them'
+				ELSE 'them'
+			END AS request_from
+			
+		FROM 
+			"friendships" f
+
+		INNER JOIN 
+			"user" u ON 
+			(
+				(f."user_id" = ${userId} AND f."friend_id" = u."id" AND f."friend_id" <> ${sessionUserId}) OR
+				(f."user_id" = u."id" AND f."friend_id" = ${userId} AND f."user_id" <> ${sessionUserId})
+			)
+
+		-- FOR CHECKING IF SESSION USER ID IS FRIEND
+		
+		LEFT JOIN 
+			"friendships" f2 ON 
+			( 
+				(f2."user_id" = ${sessionUserId} AND f2."friend_id" = u."id") OR 
+				(f2."user_id" = u."id" AND f2."friend_id" = ${sessionUserId}) 
+			)
+			
+		-- FOR CHECKING IF SESSION USER ID HAS FRIEND REQUEST
+
+		LEFT JOIN 
+			"friend_request" f3 ON
+			(
+				(f3."sender_id" = ${sessionUserId} AND f3."receiver_id" = u."id") OR 
+				(f3."sender_id" = u."id" AND f3."receiver_id" = ${sessionUserId})
+			);`,
+	);
+
+	const friendList = await db.execute(friendListQuery);
 
 	return friendList;
 };
