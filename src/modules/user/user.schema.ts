@@ -17,7 +17,7 @@ export const userSchema = registry.register(
 export type UserSchema = z.infer<typeof userSchema>;
 
 export const getUserProfileResponseSchema = registry.register(
-	'GetuserProfileResponseSchema',
+	'GetUserProfileResponseSchema',
 	z.object({
 		data: userSchema.extend({
 			is_friend: z.boolean(),

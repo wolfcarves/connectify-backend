@@ -161,13 +161,12 @@ export const getFriendRequests = async (userId: number) => {
 	const friendRequest = await db
 		.select({
 			id: friendRequestsTable.id,
-			user: {
-				id: usersTable.id,
-				avatar: usersTable.avatar,
-				name: usersTable.name,
-				username: usersTable.username,
-			},
+			userId: usersTable.id,
+			avatar: usersTable.avatar,
+			name: usersTable.name,
+			username: usersTable.username,
 			status: friendRequestsTable.status,
+			created_at: friendRequestsTable.created_at,
 		})
 		.from(friendRequestsTable)
 		.where(

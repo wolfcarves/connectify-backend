@@ -7,9 +7,9 @@ import {
 	serverErrorResponse,
 } from '@/helper/commonErrorResponse';
 import {
-	getFriendListResponseSchema,
-	getFriendRequestResponseSchema,
-	getFriendSuggestionsResponseSchema,
+	friendSuggestionSchema,
+	friendRequestSchema,
+	friendSchema,
 } from './friend.schema';
 
 export const friendSuggestionsDocs = () => {
@@ -23,11 +23,12 @@ export const friendSuggestionsDocs = () => {
 				description: 'OK',
 				content: {
 					'application/json': {
-						schema: getFriendSuggestionsResponseSchema,
+						schema: z.object({
+							data: z.array(friendSuggestionSchema),
+						}),
 					},
 				},
 			},
-
 			...serverErrorResponse,
 		},
 	});
@@ -97,7 +98,9 @@ export const getFriendRequestsDocs = () => {
 				description: 'OK',
 				content: {
 					'application/json': {
-						schema: getFriendRequestResponseSchema,
+						schema: z.object({
+							data: z.array(friendRequestSchema),
+						}),
 					},
 				},
 			},
@@ -148,7 +151,9 @@ export const getFriendListDocs = () => {
 				description: 'OK',
 				content: {
 					'application/json': {
-						schema: getFriendListResponseSchema,
+						schema: z.object({
+							data: z.array(friendSchema),
+						}),
 					},
 				},
 			},
