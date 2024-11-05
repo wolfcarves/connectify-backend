@@ -1,7 +1,6 @@
 import type { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import * as friendService from '../friend/friend.service';
-import { checkFriendStatus } from './friend.helper';
 
 export const getFriendsSuggestions = asyncHandler(
 	async (

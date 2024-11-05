@@ -157,6 +157,7 @@ export const getFriendListDocs = () => {
 					},
 				},
 			},
+			...serverErrorResponse,
 		},
 	});
 };
@@ -181,6 +182,9 @@ export const unfriendUserDocs = () => {
 					},
 				},
 			},
+			...notFoundErrorResponse,
+			...serverErrorResponse,
 		},
 	});
+	
 };

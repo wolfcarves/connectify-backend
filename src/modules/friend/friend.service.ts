@@ -189,22 +189,24 @@ export const acceptFriendRequest = async (userId: number, friendId: number) => {
 
 		if (is_friend) throw new NotFoundException('No user to accept');
 
-		await db
-			.update(friendRequestsTable)
-			.set({
-				status: 'accepted',
-			})
-			.where(
-				and(
-					eq(friendRequestsTable.sender_id, friendId),
-					eq(friendRequestsTable.receiver_id, userId),
-					eq(friendRequestsTable.status, 'pending'),
-				),
-			);
+		await db.transaction(async tx => {
+			await tx
+				.update(friendRequestsTable)
+				.set({
+					status: 'accepted',
+				})
+				.where(
+					and(
+						eq(friendRequestsTable.sender_id, friendId),
+						eq(friendRequestsTable.receiver_id, userId),
+						eq(friendRequestsTable.status, 'pending'),
+					),
+				);
 
-		await db.insert(friendshipsTable).values({
-			user_id: userId,
-			friend_id: friendId,
+			await tx.insert(friendshipsTable).values({
+				user_id: userId,
+				friend_id: friendId,
+			});
 		});
 	} catch (error) {
 		throw new NotFoundException('No user to accept');
@@ -213,7 +215,7 @@ export const acceptFriendRequest = async (userId: number, friendId: number) => {
 
 export const getFriendList = async (sessionUserId: number, userId: number) => {
 	const friendListQuery = sql.raw(
-		`SELECT DISTINCT on (u."id")
+		`SELECT 
 			u."id",
 			u."name",
 			u."username",
@@ -276,19 +278,42 @@ export const getFriendList = async (sessionUserId: number, userId: number) => {
 };
 
 export const unfriendUser = async (userId: number, friendId: number) => {
-	const response = (
-		await db
+	const response = await db.transaction(async tx => {
+		const friendShipsResponse = await tx
 			.delete(friendshipsTable)
 			.where(
 				or(
-					eq(friendshipsTable.user_id, userId),
-					eq(friendshipsTable.friend_id, friendId),
+					and(
+						eq(friendshipsTable.user_id, userId),
+						eq(friendshipsTable.friend_id, friendId),
+					),
+					and(
+						eq(friendshipsTable.user_id, friendId),
+						eq(friendshipsTable.friend_id, userId),
+					),
 				),
-			)
-			.returning({ userId: friendshipsTable.id })
-	)[0];
+			);
 
-	if (!response) throw new NotFoundException('No user to unfriend');
+		if (!friendShipsResponse)
+			throw new NotFoundException('No user to unfriend');
+
+		const friendRequestResponse = await tx
+			.delete(friendRequestsTable)
+			.where(
+				or(
+					and(
+						eq(friendRequestsTable.sender_id, userId),
+						eq(friendRequestsTable.receiver_id, friendId),
+					),
+					and(
+						eq(friendRequestsTable.sender_id, friendId),
+						eq(friendRequestsTable.receiver_id, userId),
+					),
+				),
+			);
+
+		return friendRequestResponse;
+	});
 
 	return response;
 };
