@@ -3,32 +3,32 @@ import { BadRequestException } from '@/exceptions/BadRequestException';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import { friendRequestsTable, friendshipsTable } from '@/models/friendsTable';
 import { usersTable } from '@/models/usersTable';
-import { and, desc, eq, ne, notExists, or, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, ne, notExists, or, sql } from 'drizzle-orm';
 import { type PostgresError } from 'postgres';
 import { checkFriendStatus } from './friend.helper';
+import * as userService from '../user/user.service';
 
-export const getFriendsSuggestions = async (
-	userId: number,
-	latestUserId: number,
-) => {
-	let id = 0;
+/*
+	if not null, fetch same cities
+ 	* prioritize real users
+*/
 
-	if (!latestUserId) {
-		id = (
-			await db.select().from(usersTable).orderBy(desc(usersTable.id))
-		)?.[0].id;
-	}
+/*
+	if null
+	* fetch null ones, definitely they are real users.
+ */
 
-	const limit = 30;
-	const friendRequestOffset = id < limit ? 0 : id;
+export const getFriendsSuggestions = async (userId: number) => {
+	const user = await userService.getUser({ userId });
 
-	const suggestedFriends = await db
+	const query = await db
 		.select({
 			id: usersTable.id,
 			avatar: usersTable.avatar,
 			name: usersTable.name,
 			username: usersTable.username,
 			status: friendRequestsTable.status,
+			city: usersTable.city,
 		})
 		.from(usersTable)
 		.leftJoin(
@@ -77,13 +77,10 @@ export const getFriendsSuggestions = async (
 				),
 			),
 		)
-		.offset(friendRequestOffset)
-		.limit(limit);
+		.orderBy(desc(usersTable.id))
+		.limit(50);
 
-	return {
-		suggestedFriends,
-		friendRequestOffset,
-	};
+	return query;
 };
 
 export const createFriendRequest = async (

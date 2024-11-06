@@ -8,17 +8,9 @@ export const getFriendsSuggestions = asyncHandler(
 		res: Response,
 	) => {
 		const userId = res.locals.user!.id;
-		//This is for remembering offset to avoid invalidation issues
-		const latestUserId = req.cookies.latestUserId;
 
-		const { friendRequestOffset, suggestedFriends } =
-			await friendService.getFriendsSuggestions(userId, latestUserId);
-
-		res.cookie('friendRequestOffset', friendRequestOffset, {
-			path: '/',
-			httpOnly: true,
-			maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
-		});
+		const suggestedFriends =
+			await friendService.getFriendsSuggestions(userId);
 
 		res.status(200).json({
 			data: suggestedFriends,
@@ -41,7 +33,7 @@ export const sendFriendRequest = asyncHandler(
 
 		res.status(200).send({
 			success: true,
-			message: 'Friend Request Sent',
+			message: 'Friend request sent.',
 		});
 	},
 );
@@ -61,7 +53,7 @@ export const cancelFriendRequest = asyncHandler(
 
 		res.status(200).send({
 			success: true,
-			message: 'Friend Request Cancelled',
+			message: 'Friend request cancelled.',
 		});
 	},
 );

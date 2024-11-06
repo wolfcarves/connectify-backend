@@ -25,6 +25,7 @@ export const userSignUpInputSchema = registry.register(
 			name: z.string(),
 			username: z.string(),
 			password: z.string(),
+			city: z.string().nullish(),
 			confirm_password: z.string(),
 		})
 		.refine(data => data.password === data.confirm_password, {

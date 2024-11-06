@@ -11,13 +11,15 @@
 		"type-check": "npx tsc --noEmit false",
 		"dk:studio": "npx drizzle-kit studio",
 		"dk:push": "npx drizzle-kit push",
-		"seed:avatar": "tsx ./src/db/seedAvatar.ts && exit 0"
+		"seed:avatar": "tsx ./src/db/seeds/seedAvatar.ts && exit 0",
+		"seed:user": "tsx ./src/db/seeds/seedUser.ts && exit 0"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
 		"@asteasolutions/zod-to-openapi": "^7.1.1",
+		"@faker-js/faker": "^9.2.0",
 		"@lucia-auth/adapter-drizzle": "^1.1.0",
 		"@lucia-auth/adapter-postgresql": "^3.1.2",
 		"bcrypt": "^5.1.1",

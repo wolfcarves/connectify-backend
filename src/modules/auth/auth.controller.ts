@@ -59,7 +59,7 @@ export const signUpUser = asyncHandler(
 		req: Request<never, never, UserSignUpInput, never>,
 		res: Response,
 	) => {
-		const { username, name, email, password } =
+		const { username, name, email, password, city } =
 			await userSignUpInputSchema.parseAsync(req.body);
 
 		const usernameResults = await userService.getUser({ username });
@@ -85,7 +85,13 @@ export const signUpUser = asyncHandler(
 
 		const hashedPassword = await hashPassword(password);
 
-		await authService.createUser(name, username, email, hashedPassword);
+		await authService.createUser(
+			name,
+			username,
+			email,
+			hashedPassword,
+			city,
+		);
 
 		res.status(201).json({
 			success: true,

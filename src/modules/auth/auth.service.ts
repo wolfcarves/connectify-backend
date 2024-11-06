@@ -8,6 +8,7 @@ export const createUser = async (
 	username: string,
 	email: string,
 	password: string,
+	city?: string | null,
 ) => {
 	const arrName = name.split(' ');
 
@@ -27,6 +28,7 @@ export const createUser = async (
 				name: fullname,
 				username: username.toLowerCase(),
 				email: email.toLowerCase(),
+				city,
 				password,
 			})
 			.returning({ id: usersTable.id })

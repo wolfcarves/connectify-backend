@@ -1,7 +1,6 @@
-import { db } from '.';
-import { avatarTable } from '../models/avatarTable';
+import { db } from '..';
+import { avatarTable } from '../../models/avatarTable';
 
-//Mostly you run this once if the avatar table is not seeded yet.
 const seedAvatarTable = async () => {
 	const data: (typeof avatarTable.$inferInsert)[] = [];
 
