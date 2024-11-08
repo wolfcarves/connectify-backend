@@ -39,7 +39,7 @@ app.use(zodErrorHandler);
 app.use(errorHandler);
 app.use(notFoundHandler);
 
-app.listen(env?.port, () => {
+app.listen(Number(env?.port), '0.0.0.0', () => {
 	logger.info(`Server is listening on port ${port}`);
 });
 
