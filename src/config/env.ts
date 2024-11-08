@@ -19,10 +19,7 @@ export type EnvSchema = z.infer<typeof envSchema>;
 const envValues: EnvSchema = {
 	nodeEnv: process.env.NODE_ENV!,
 	port: Number(process.env.PORT),
-	databaseUri:
-		process.env.NODE_ENV === 'development'
-			? process.env.DATABASE_URI_DEV!
-			: process.env.DATABASE_URI!,
+	databaseUri: process.env.DATABASE_URI!,
 
 	cloudinaryUrl: process.env.CLOUDINARY_URL!,
 	cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME!,
