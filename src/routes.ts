@@ -10,6 +10,7 @@ import PostRouter from './modules/post/post.route';
 import EngagementRouter from './modules/engagement/engagement.route';
 import UserRouter from './modules/user/user.route';
 import express from 'express';
+import { env } from './config/env';
 
 const apiRouter = express.Router();
 const apiPrefix = '/api/v1';
@@ -24,6 +25,7 @@ export const renderRoutes = (app: Express) => {
 
 	apiRouter.get('/health', (req: Request, res: Response) => {
 		res.status(200).send({
+			someUri: env?.databaseUri,
 			message: `Server is up and runing in ${process.env.DEFAULT_AVATAR_NAME}`,
 		});
 	});
