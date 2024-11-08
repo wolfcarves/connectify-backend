@@ -28,15 +28,15 @@ jobs:
                   push: true
                   tags: ${{secrets.DOCKERHUB_USERNAME}}/connectify-server:latest
                   build-args: |
-                    NODE_ENV=${{secrets.NODE_ENV}}
-                    PORT=${{secrets.PORT}}
-                    DATABASE_URI=${{secrets.DATABASE_URI}}
-                    CLOUDINARY_URL=${{secrets.CLOUDINARY_URL}}
-                    CLOUDINARY_CLOUD_NAME=${{secrets.CLOUDINARY_CLOUD_NAME}}
-                    CLOUDINARY_CLOUD_API_KEY=${{secrets.CLOUDINARY_CLOUD_API_KEY}}
-                    CLOUDINARY_CLOUD_API_SECRET=${{secrets.CLOUDINARY_CLOUD_API_SECRET}}
-                    CLOUDINARY_PROFILE_PUBLIC_ID=${{secrets.CLOUDINARY_PROFILE_PUBLIC_ID}}
-                    DEFAULT_AVATAR_NAME=${{secrets.DEFAULT_AVATAR_NAME}}
+                      NODE_ENV=${{secrets.NODE_ENV}}
+                      PORT=${{secrets.PORT}}
+                      DATABASE_URI=${{secrets.DATABASE_URI}}
+                      CLOUDINARY_URL=${{secrets.CLOUDINARY_URL}}
+                      CLOUDINARY_CLOUD_NAME=${{secrets.CLOUDINARY_CLOUD_NAME}}
+                      CLOUDINARY_CLOUD_API_KEY=${{secrets.CLOUDINARY_CLOUD_API_KEY}}
+                      CLOUDINARY_CLOUD_API_SECRET=${{secrets.CLOUDINARY_CLOUD_API_SECRET}}
+                      CLOUDINARY_PROFILE_PUBLIC_ID=${{secrets.CLOUDINARY_PROFILE_PUBLIC_ID}}
+                      DEFAULT_AVATAR_NAME=${{secrets.DEFAULT_AVATAR_NAME}}
                   secrets: |
                       GIT_AUTH_TOKEN=${{secrets.GIT_AUTH_TOKEN}}
 
@@ -53,5 +53,4 @@ jobs:
                   port: ${{secrets.SSH_PORT}}
                   username: ${{secrets.SSH_USERNAME}}
                   password: ${{secrets.SSH_PASSWORD}}
-                  passphrase: ${{secrets.SSH_PASSPHRASE}}
                   script: bash deploy.sh
