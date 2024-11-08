@@ -59,11 +59,14 @@ export const signUpUser = asyncHandler(
 		req: Request<never, never, UserSignUpInput, never>,
 		res: Response,
 	) => {
-		const { username, name, email, password, city } =
-			await userSignUpInputSchema.parseAsync(req.body);
+		const parsedData = await userSignUpInputSchema.parseAsync(req.body);
 
-		const usernameResults = await userService.getUser({ username });
-		const emailResults = await userService.getUser({ email });
+		const usernameResults = await userService.getUser({
+			username: parsedData.username,
+		});
+		const emailResults = await userService.getUser({
+			email: parsedData.email,
+		});
 
 		const errors: ZodError['validationErrors'] = [];
 
@@ -83,15 +86,14 @@ export const signUpUser = asyncHandler(
 
 		if (errors.length > 0) throw new ZodError(errors);
 
-		const hashedPassword = await hashPassword(password);
+		const hashedPassword = await hashPassword(parsedData.password);
 
-		await authService.createUser(
-			name,
-			username,
-			email,
-			hashedPassword,
-			city,
-		);
+		const data: UserSignUpInput = {
+			...parsedData,
+			password: hashedPassword,
+		};
+
+		await authService.createUser(data);
 
 		res.status(201).json({
 			success: true,

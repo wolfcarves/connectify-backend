@@ -5,7 +5,7 @@ import { db } from '..';
 type User = typeof usersTable.$inferInsert;
 
 const seedUserTable = async () => {
-	const count = 2000;
+	const count = 500;
 
 	const users = faker.helpers.multiple(createRandomUser, {
 		count,
@@ -64,6 +64,7 @@ const createRandomUser = (): User => {
 		city,
 		created_at: faker.date.past(),
 		updated_at: faker.date.past(),
+		is_bot: true,
 	};
 };
 

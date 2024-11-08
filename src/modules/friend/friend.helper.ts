@@ -1,5 +1,5 @@
 import { friendRequestsTable, friendshipsTable } from '@/models/friendsTable';
-import { and, eq, or } from 'drizzle-orm';
+import { and, eq, or, sql, type SQL } from 'drizzle-orm';
 import { db } from '@/db';
 
 export const checkFriendStatus = async (userId: number, friendId: number) => {
@@ -21,7 +21,7 @@ export const checkFriendStatus = async (userId: number, friendId: number) => {
 			)
 	)?.[0];
 
-	const hasrequest_fromUs = !!(
+	const hasRequestFromUs = !!(
 		await db
 			.select()
 			.from(friendRequestsTable)
@@ -33,7 +33,7 @@ export const checkFriendStatus = async (userId: number, friendId: number) => {
 			)
 	)?.[0];
 
-	const hasrequest_fromThem = !!(
+	const hasRequestFromThem = !!(
 		await db
 			.select()
 			.from(friendRequestsTable)
@@ -47,13 +47,34 @@ export const checkFriendStatus = async (userId: number, friendId: number) => {
 
 	return {
 		is_friend,
-		has_request: is_friend
-			? false
-			: hasrequest_fromUs || hasrequest_fromThem,
-		request_from: hasrequest_fromUs
+		has_request: is_friend ? false : hasRequestFromUs || hasRequestFromThem,
+		request_from: hasRequestFromUs
 			? 'us'
-			: hasrequest_fromThem
+			: hasRequestFromThem
 				? 'them'
 				: null,
 	};
+};
+
+/* FRIEND SUGGESTIONS */
+
+export const applySameCityQuery = (
+	query: SQL<unknown>,
+	city?: string | null,
+) => {
+	if (city) {
+		query.append(
+			sql.raw(`
+				ORDER BY
+					CASE 
+						WHEN u.city = '${city}' THEN 1 
+						ELSE 2 
+					END,
+					u.id
+					DESC
+				LIMIT 50;
+					
+		`),
+		);
+	}
 };

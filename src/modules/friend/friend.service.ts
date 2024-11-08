@@ -5,82 +5,68 @@ import { friendRequestsTable, friendshipsTable } from '@/models/friendsTable';
 import { usersTable } from '@/models/usersTable';
 import { and, desc, eq, isNull, ne, notExists, or, sql } from 'drizzle-orm';
 import { type PostgresError } from 'postgres';
-import { checkFriendStatus } from './friend.helper';
+import { applySameCityQuery, checkFriendStatus } from './friend.helper';
 import * as userService from '../user/user.service';
 
 /*
-	if not null, fetch same cities
- 	* prioritize real users
-*/
 
-/*
-	if null
-	* fetch null ones, definitely they are real users.
- */
+	Process
+
+	* default query or base query for friend suggestions
+	* query function for fetching same city && prioritize real users
+	* query function for fetching users friends of friends. 
+	* 
+
+*/
 
 export const getFriendsSuggestions = async (userId: number) => {
 	const user = await userService.getUser({ userId });
 
-	const query = await db
-		.select({
-			id: usersTable.id,
-			avatar: usersTable.avatar,
-			name: usersTable.name,
-			username: usersTable.username,
-			status: friendRequestsTable.status,
-			city: usersTable.city,
-		})
-		.from(usersTable)
-		.leftJoin(
-			friendRequestsTable,
-			and(
-				eq(friendRequestsTable.sender_id, userId),
-				eq(friendRequestsTable.receiver_id, usersTable.id),
+	const query = sql.raw(`
+		WITH 
+			has_friend_request AS (
+				SELECT sender_id AS friendId
+				FROM friend_request
+				WHERE receiver_id = ${userId}
 			),
-		)
-		.where(
-			and(
-				ne(usersTable.id, userId),
-				notExists(
-					db
-						.select()
-						.from(friendRequestsTable)
-						.where(
-							and(
-								eq(
-									friendRequestsTable.sender_id,
-									usersTable.id,
-								),
-								eq(friendRequestsTable.receiver_id, userId),
-							),
-						),
-				),
-				notExists(
-					db
-						.select()
-						.from(friendshipsTable)
-						.where(
-							or(
-								and(
-									eq(friendshipsTable.user_id, userId),
-									eq(
-										friendshipsTable.friend_id,
-										usersTable.id,
-									),
-								),
-								and(
-									eq(friendshipsTable.user_id, usersTable.id),
-									eq(friendshipsTable.friend_id, userId),
-								),
-							),
-						),
-				),
-			),
-		)
-		.orderBy(desc(usersTable.id))
-		.limit(50);
+			is_friend AS (
+				SELECT friend_id as friendId 
+				FROM friendships
+				WHERE user_id = ${userId} 
+				UNION
+				SELECT user_id as friendId
+				FROM friendships
+				WHERE friend_id = ${userId} 
+			)
 
-	return query;
+			SELECT
+				u.id,
+				u.avatar,
+				u.name,
+				u.username,
+				fr.status,
+				u.city
+			FROM
+				"user" u
+			LEFT JOIN
+				friend_request fr
+			ON
+				fr.sender_id = ${userId} AND fr.receiver_id = u.id
+			WHERE
+				u.id <> ${userId}
+				AND u.id NOT IN (SELECT friendId FROM has_friend_request)
+				AND u.id NOT IN (SELECT friendId FROM is_friend)
+	`);
+
+	if (user?.city) {
+		applySameCityQuery(query, user?.city);
+	} else {
+		query.append(sql.raw(`ORDER BY id DESC LIMIT 50;`));
+	}
+
+	const response = await db.execute(query);
+
+	return response;
 };
 
 export const createFriendRequest = async (
@@ -314,3 +300,66 @@ export const unfriendUser = async (userId: number, friendId: number) => {
 
 	return response;
 };
+
+/* Friend Suggestions
+
+const query = await db
+		.select({
+			id: usersTable.id,
+			avatar: usersTable.avatar,
+			name: usersTable.name,
+			username: usersTable.username,
+			status: friendRequestsTable.status,
+			city: usersTable.city,
+		})
+		.from(usersTable)
+		.leftJoin(
+			friendRequestsTable,
+			and(
+				eq(friendRequestsTable.sender_id, userId),
+				eq(friendRequestsTable.receiver_id, usersTable.id),
+			),
+		)
+		.where(
+			and(
+				ne(usersTable.id, userId),
+				notExists(
+					db
+						.select()
+						.from(friendRequestsTable)
+						.where(
+							and(
+								eq(
+									friendRequestsTable.sender_id,
+									usersTable.id,
+								),
+								eq(friendRequestsTable.receiver_id, userId),
+							),
+						),
+				),
+				notExists(
+					db
+						.select()
+						.from(friendshipsTable)
+						.where(
+							or(
+								and(
+									eq(friendshipsTable.user_id, userId),
+									eq(
+										friendshipsTable.friend_id,
+										usersTable.id,
+									),
+								),
+								and(
+									eq(friendshipsTable.user_id, usersTable.id),
+									eq(friendshipsTable.friend_id, userId),
+								),
+							),
+						),
+				),
+			),
+		)
+		.orderBy(desc(usersTable.id))
+		.limit(50);
+
+*/

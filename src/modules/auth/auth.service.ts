@@ -2,15 +2,10 @@ import { db } from '@/db/index';
 import { usersTable } from '@/models/usersTable';
 import bcrypt from 'bcrypt';
 import { avatarTable } from '@/models/avatarTable';
+import type { UserSignUpInput } from './auth.schema';
 
-export const createUser = async (
-	name: string,
-	username: string,
-	email: string,
-	password: string,
-	city?: string | null,
-) => {
-	const arrName = name.split(' ');
+export const createUser = async (data: UserSignUpInput) => {
+	const arrName = data?.name.split(' ');
 
 	const capitalizeWord = (word: string) => {
 		if (!word) return '';
@@ -26,10 +21,10 @@ export const createUser = async (
 			.values({
 				avatar: avatar?.avatar ?? '/m_avatar_1.svg',
 				name: fullname,
-				username: username.toLowerCase(),
-				email: email.toLowerCase(),
-				city,
-				password,
+				username: data?.username.toLowerCase(),
+				email: data?.email.toLowerCase(),
+				city: data.city,
+				password: data.password,
 			})
 			.returning({ id: usersTable.id })
 	)[0];
