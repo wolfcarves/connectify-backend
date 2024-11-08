@@ -16,7 +16,6 @@ import { writeDocumentation } from './lib/zodToOpenAPI';
 import { corsOptions } from './config/corsOptions';
 import cloudinary from 'cloudinary';
 import { cloudinaryOptions } from './config/cloundinaryOptions';
-import { env } from './config/env';
 
 const app = express();
 const port = Number(process.env.PORT) || 5000;
@@ -39,7 +38,7 @@ app.use(zodErrorHandler);
 app.use(errorHandler);
 app.use(notFoundHandler);
 
-app.listen(Number(env?.port), '0.0.0.0', () => {
+app.listen(port, '0.0.0.0', () => {
 	logger.info(`Server is listening on port ${port}`);
 });
 
