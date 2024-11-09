@@ -25,8 +25,8 @@ export const renderRoutes = (app: Express) => {
 
 	apiRouter.get('/health', (req: Request, res: Response) => {
 		res.status(200).send({
-			someUri: env?.databaseUri,
-			message: `Server is up and runing in ${process.env.DEFAULT_AVATAR_NAME}`,
+			someUri: `uri is ${env?.databaseUri}`,
+			message: `Server is up and runing in ${process.env.PORT}`,
 		});
 	});
 
