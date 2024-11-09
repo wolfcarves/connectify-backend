@@ -1,7 +1,6 @@
 import { ForbiddenException } from '@/exceptions/ForbiddenException';
 import type { NextFunction, Request, Response } from 'express';
 import { lucia } from '@/lib/auth';
-import logger from '@/utils/logger';
 
 export const validateSession = async (
 	req: Request,
@@ -35,9 +34,6 @@ export const validateSession = async (
 
 	res.locals.user = user;
 	res.locals.session = session;
-
-	console.log('user', user);
-	console.log('session', session);
 
 	return next();
 };
