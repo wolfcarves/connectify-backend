@@ -4,7 +4,7 @@ import type { CorsOptions } from 'cors';
 const whitelist = [
 	'http://localhost:3000',
 	'http://localhost:5000',
-	'http://172.104.163.183',
+	'https://connectify-frontend-tau.vercel.app',
 ];
 
 export const corsOptions: CorsOptions = {
