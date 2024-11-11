@@ -12,7 +12,8 @@
 		"dk:studio": "npx drizzle-kit studio",
 		"dk:push": "npx drizzle-kit push",
 		"seed:avatar": "tsx ./src/db/seeds/seedAvatar.ts && exit 0",
-		"seed:user": "tsx ./src/db/seeds/seedUser.ts && exit 0"
+		"seed:user": "tsx ./src/db/seeds/seedUser.ts && exit 0",
+		"seed:post": "tsx ./src/db/seeds/seedPost.ts && exit 0"
 	},
 	"keywords": [],
 	"author": "",

@@ -40,13 +40,18 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 		throw new ZodError(error);
 	}
 
-	res.appendHeader('Set-Cookie', sessionCookie.serialize())
-		.appendHeader('Location', '/')
-		.status(200)
-		.json({
-			success: true,
-			message: 'Login successful',
-		});
+	res.cookie(sessionCookie.name, sessionCookie.value, {
+		path: '/',
+		httpOnly: true,
+		maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+		secure: true,
+		sameSite: 'none',
+	});
+
+	res.status(200).json({
+		success: true,
+		message: 'Login successful',
+	});
 });
 
 export const signUpUser = asyncHandler(

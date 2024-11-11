@@ -3,6 +3,7 @@ import { usersTable } from '@/models/usersTable';
 import bcrypt from 'bcrypt';
 import { avatarTable } from '@/models/avatarTable';
 import type { UserSignUpInput } from './auth.schema';
+import { ServerInternalException } from '@/exceptions/ServerInternalException';
 
 export const createUser = async (data: UserSignUpInput) => {
 	const arrName = data?.name.split(' ');
@@ -28,6 +29,11 @@ export const createUser = async (data: UserSignUpInput) => {
 			})
 			.returning({ id: usersTable.id })
 	)[0];
+
+	if (!user)
+		throw new ServerInternalException(
+			'Failed to register, Please try again later',
+		);
 
 	return user;
 };

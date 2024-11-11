@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-	nodeEnv: z.string(),
+	nodeEnv: z.enum(['production', 'development']),
 	port: z.number(),
 	databaseUri: z.string(),
 
@@ -17,7 +17,7 @@ const envSchema = z.object({
 export type EnvSchema = z.infer<typeof envSchema>;
 
 const envValues: EnvSchema = {
-	nodeEnv: process.env.NODE_ENV!,
+	nodeEnv: process.env.NODE_ENV! as 'production' | 'development',
 	port: Number(process.env.PORT),
 	databaseUri: process.env.DATABASE_URI!,
 
