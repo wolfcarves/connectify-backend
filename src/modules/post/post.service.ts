@@ -16,7 +16,7 @@ export const addPost = async (
 	});
 };
 
-export const findAll = async (
+export const getAllUserPosts = async (
 	sessionUserId: number,
 	paramUserId: number,
 	page: number,

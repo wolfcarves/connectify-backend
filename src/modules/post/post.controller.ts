@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
 import type { Request, Response } from 'express';
 import { createPostInputSchema, type CreatePostInput } from './post.schema';
 import asyncHandler from 'express-async-handler';
@@ -6,6 +7,7 @@ import * as postService from './post.service';
 import * as userService from '../user/user.service';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import type { SearchAndQueryParams } from '@/types/request';
+import validateUUID from '@/utils/validateUUID';
 
 export const createPost = asyncHandler(
 	async (
@@ -40,7 +42,7 @@ export const getUserPosts = asyncHandler(
 
 		const user = await userService.getUser({ username: paramsUsername });
 
-		const posts = await postService.findAll(
+		const posts = await postService.getAllUserPosts(
 			sessionUserId,
 			user.id,
 			page,
@@ -59,19 +61,15 @@ export const getUserPost = asyncHandler(async (req: Request, res: Response) => {
 	const sessionUserId = Number(res.locals.user!.id);
 	const uuid = req.params.uuid;
 
+	if (!validateUUID(uuid)) throw new NotFoundException('Post not found');
 	const post = await postService.findOne(sessionUserId, uuid);
 
 	// allow user to view if he owns the post
 	const ableToView =
 		post?.post.audience === 'private' && sessionUserId !== post?.user.id;
 
-	if (!post.post.id) {
-		throw new NotFoundException('Post not found');
-	}
-
-	if (ableToView) {
-		throw new NotFoundException('Post not found');
-	}
+	if (!post.post.id) throw new NotFoundException('Post not found');
+	if (ableToView) throw new NotFoundException('Post not found');
 
 	res.status(200).json({
 		data: post,

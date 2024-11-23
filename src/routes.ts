@@ -4,6 +4,7 @@ import type { Express, Request, Response } from 'express';
 import OpenAPIDocs from './docs/openapi-docs.json' assert { type: 'json' };
 import SwaggerUI from 'swagger-ui-express';
 import AuthRouter from './modules/auth/auth.route';
+import FeedRouter from './modules/feed/feed.route';
 import FriendRouter from './modules/friend/friend.route';
 import HealthRouter from './modules/health/health.route';
 import PostRouter from './modules/post/post.route';
@@ -17,6 +18,7 @@ const apiPrefix = '/api/v1';
 
 export const renderRoutes = (app: Express) => {
 	apiRouter.use('/auth', AuthRouter);
+	apiRouter.use('/feed', FeedRouter);
 	apiRouter.use('/friends', FriendRouter);
 	apiRouter.use('/health', HealthRouter);
 	apiRouter.use('/post', PostRouter);
