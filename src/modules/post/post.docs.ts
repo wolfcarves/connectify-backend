@@ -1,6 +1,7 @@
 import { registry } from '@/lib/zodToOpenAPI';
 import { createPostInputSchema, postSchema } from './post.schema';
 import {
+	conflictErrorResponse,
 	notFoundErrorResponse,
 	serverErrorResponse,
 	unauthorizedErrorResponse,
@@ -116,7 +117,7 @@ export const getUserPostsDocs = () => {
 	});
 };
 
-export const deleteUserPost = () => {
+export const deleteUserPostDocs = () => {
 	registry.registerPath({
 		tags: ['Post'],
 		method: 'delete',
@@ -139,6 +140,61 @@ export const deleteUserPost = () => {
 								user: userSchema,
 							}),
 						}),
+					},
+				},
+			},
+			...notFoundErrorResponse,
+			...serverErrorResponse,
+		},
+	});
+};
+
+export const saveUserPostDocs = () => {
+	registry.registerPath({
+		tags: ['Post'],
+		method: 'post',
+		path: '/api/v1/post/save/{postId}',
+		operationId: 'saveUserPost',
+		summary: 'Save User Post',
+		request: {
+			params: z.object({
+				postId: z.number(),
+			}),
+		},
+		responses: {
+			200: {
+				description: 'OK',
+				content: {
+					'application/json': {
+						schema: successResponseSchema,
+					},
+				},
+			},
+			...notFoundErrorResponse,
+			...conflictErrorResponse,
+			...serverErrorResponse,
+		},
+	});
+};
+
+export const unSaveUserPostDocs = () => {
+	registry.registerPath({
+		tags: ['Post'],
+		method: 'post',
+		path: '/api/v1/post/unsave/{postId}',
+		operationId: 'unSaveUserPost',
+		summary: 'Unsave User Post',
+		request: {
+			params: z.object({
+				postId: z.number(),
+			}),
+		},
+		responses: {
+			200: {
+				description: 'OK',
+				content: {
+					'application/json': {
+						schema: successResponseSchema,
 					},
 				},
 			},

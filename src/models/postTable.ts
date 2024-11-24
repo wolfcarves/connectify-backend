@@ -43,19 +43,28 @@ export const postLikeTable = pgTable('post_likes', {
 });
 
 export const postCommentTable = pgTable('post_comments', {
-	id: serial('id').primaryKey().notNull(),
+	id: serial('id').primaryKey(),
 	user_id: integer('user_id').references(() => usersTable.id),
 	post_id: integer('post_id').references(() => postTable.id),
 	comment: text('comment').notNull(),
-	created_at: timestamp('created_at').defaultNow().notNull(),
-	updated_at: timestamp('updated_at').defaultNow().notNull(),
+	created_at: timestamp('created_at').defaultNow(),
+	updated_at: timestamp('updated_at').defaultNow(),
+});
+
+export const postReplyTable = pgTable('post_reply', {
+	id: serial('id').primaryKey(),
+	user_id: integer('user_id').references(() => usersTable.id),
+	comment_id: integer('post_id').references(() => postTable.id),
+	reply: text('reply').notNull(),
+	created_at: timestamp('created_at').defaultNow(),
+	updated_at: timestamp('updated_at').defaultNow(),
 });
 
 export const postShareTable = pgTable('post_shares', {
-	id: serial('id').primaryKey().notNull(),
+	id: serial('id').primaryKey(),
 	user_id: integer('user_id').references(() => usersTable.id),
 	post_id: integer('post_id').references(() => postTable.id),
-	comment: text('comment').notNull(),
-	created_at: timestamp('created_at').defaultNow().notNull(),
-	updated_at: timestamp('updated_at').defaultNow().notNull(),
+	comment: text('comment'),
+	created_at: timestamp('created_at').defaultNow(),
+	updated_at: timestamp('updated_at').defaultNow(),
 });

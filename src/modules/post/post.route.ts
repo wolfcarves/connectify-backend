@@ -14,7 +14,13 @@ PostRouter.get('/all/:username', requireAuth, PostController.getUserPosts);
 PostDocumentation.getUserPostDocs();
 PostRouter.get('/:uuid', PostController.getUserPost);
 
-PostDocumentation.deleteUserPost();
+PostDocumentation.deleteUserPostDocs();
 PostRouter.delete('/:postId', requireAuth, PostController.deletePost);
+
+PostDocumentation.saveUserPostDocs();
+PostRouter.post('/save/:postId', requireAuth, PostController.savePost);
+
+PostDocumentation.unSaveUserPostDocs();
+PostRouter.post('/unsave/:postId', requireAuth, PostController.usSavePost);
 
 export default PostRouter;

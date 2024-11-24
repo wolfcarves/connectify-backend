@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { postLikeTable, postTable } from '@/models/postTable';
 import type { CreatePostInput } from './post.schema';
 import { db } from '@/db';
 import { and, desc, eq } from 'drizzle-orm';
-import { usersTable } from '@/models/usersTable';
+import { usersBookmarkTable, usersTable } from '@/models/usersTable';
+import { checkPostExistence, isPostSaved } from './post.helper';
 
 export const addPost = async (
 	userId: number,
@@ -90,4 +92,36 @@ export const deletePost = async (userId: number, postId: number) => {
 		.returning({
 			post_id: postTable.id,
 		});
+};
+
+export const savePost = async (userId: number, postId: number) => {
+	const isPostExists = await checkPostExistence(postId);
+	const isSaved = await isPostSaved(userId, postId);
+
+	if (isSaved || !isPostExists) return false;
+
+	await db.insert(usersBookmarkTable).values({
+		user_id: userId,
+		post_id: postId,
+	});
+
+	return true;
+};
+
+export const unSavePost = async (userId: number, postId: number) => {
+	const isPostExists = await checkPostExistence(postId);
+	const isNotSaved = !(await isPostSaved(userId, postId));
+
+	if (isNotSaved || !isPostExists) return false;
+
+	await db
+		.delete(usersBookmarkTable)
+		.where(
+			and(
+				eq(usersBookmarkTable.user_id, userId),
+				eq(usersBookmarkTable.post_id, postId),
+			),
+		);
+
+	return true;
 };

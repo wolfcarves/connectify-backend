@@ -6,8 +6,9 @@ import asyncHandler from 'express-async-handler';
 import * as postService from './post.service';
 import * as userService from '../user/user.service';
 import { NotFoundException } from '@/exceptions/NotFoundException';
-import type { SearchAndQueryParams } from '@/types/request';
+import type { RouteAndQueryParams, RouteParams } from '@/types/request';
 import validateUUID from '@/utils/validateUUID';
+import { ConflictException } from '@/exceptions/ConflictException';
 
 export const createPost = asyncHandler(
 	async (
@@ -28,7 +29,7 @@ export const createPost = asyncHandler(
 
 export const getUserPosts = asyncHandler(
 	async (
-		req: SearchAndQueryParams<
+		req: RouteAndQueryParams<
 			{ username: string },
 			{ page: string; per_page: string }
 		>,
@@ -90,3 +91,39 @@ export const deletePost = asyncHandler(async (req: Request, res: Response) => {
 		message: `The post (${deletedPostId}) is successfully deleted`,
 	});
 });
+
+export const savePost = asyncHandler(
+	async (req: RouteParams<{ postId: string }>, res: Response) => {
+		const userId = res.locals.user!.id;
+		const postId = Number(req.params.postId);
+
+		if (!postId) throw new NotFoundException('Post not found');
+
+		const savePost = await postService.savePost(userId, postId);
+
+		if (!savePost) throw new ConflictException('This post already saved');
+
+		res.status(200).json({
+			sucess: true,
+			message: 'Post saved',
+		});
+	},
+);
+
+export const usSavePost = asyncHandler(
+	async (req: RouteParams<{ postId: string }>, res: Response) => {
+		const userId = res.locals.user!.id;
+		const postId = Number(req.params.postId);
+
+		if (!userId || !postId) throw new NotFoundException('Post not found');
+
+		const unSavePost = await postService.unSavePost(userId, postId);
+
+		if (!unSavePost) throw new NotFoundException('Post not found');
+
+		res.status(200).json({
+			sucess: true,
+			message: 'Post unsaved',
+		});
+	},
+);
