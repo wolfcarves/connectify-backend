@@ -3,9 +3,8 @@ import multer from 'multer';
 import * as UserController from './user.controller';
 import * as UserDocumentation from './user.docs';
 import { requireAuth } from '@/middleware/auth.middleware';
-import { storage } from '@/config/multerStorageOptions';
 
-const upload = multer({ storage });
+const upload = multer({ storage: multer.diskStorage({}) });
 const UserRouter = express.Router();
 
 UserDocumentation.uploadUserProfileImageDocs();

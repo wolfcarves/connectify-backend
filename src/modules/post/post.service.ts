@@ -1,17 +1,55 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { postLikeTable, postTable } from '@/models/postTable';
+import { postImagesTable, postLikeTable, postTable } from '@/models/postTable';
 import type { CreatePostInput } from './post.schema';
 import { db } from '@/db';
 import { and, desc, eq } from 'drizzle-orm';
 import { bookmarkTable } from '@/models/bookmarkTable';
 import { usersTable } from '@/models/usersTable';
+import cloudinary from 'cloudinary';
+import pLimit from 'p-limit';
 
 export const addPost = async (
 	userId: number,
 	{ content, audience }: CreatePostInput,
+	files?: Express.Request['files'],
 ) => {
-	return await db.insert(postTable).values({
+	const limit = pLimit(10);
+
+	if (files && Array.isArray(files)) {
+		await db.transaction(async tx => {
+			const [post] = await tx
+				.insert(postTable)
+				.values({
+					user_id: userId,
+					content,
+					audience,
+				})
+				.returning({ id: postTable.id });
+
+			const imagesToUpload = files.map((file: Express.Multer.File) => {
+				return limit(async () => {
+					await cloudinary.v2.uploader.upload(file.path, {
+						public_id: file.filename,
+						folder: 'user-post',
+						resource_type: 'image',
+					});
+
+					await tx.insert(postImagesTable).values({
+						post_id: post.id,
+						image: file.filename,
+						mime_type: file.mimetype,
+					});
+				});
+			});
+
+			await Promise.all(imagesToUpload);
+		});
+
+		return;
+	}
+
+	await db.insert(postTable).values({
 		user_id: userId,
 		content,
 		audience,

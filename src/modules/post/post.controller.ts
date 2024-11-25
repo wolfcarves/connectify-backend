@@ -8,17 +8,18 @@ import * as userService from '../user/user.service';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import type { RouteAndQueryParams, RouteParams } from '@/types/request';
 import validateUUID from '@/utils/validateUUID';
-import { ConflictException } from '@/exceptions/ConflictException';
 
 export const createPost = asyncHandler(
 	async (
 		req: Request<never, never, CreatePostInput, never>,
 		res: Response,
 	) => {
+		const files = req.files;
+
 		const userId = res.locals.user!.id;
 		const parsedInput = await createPostInputSchema.parseAsync(req.body);
 
-		await postService.addPost(userId, parsedInput);
+		await postService.addPost(userId, parsedInput, files);
 
 		res.status(201).json({
 			success: true,

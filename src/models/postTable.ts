@@ -10,7 +10,11 @@ import {
 } from 'drizzle-orm/pg-core';
 import { usersTable } from './usersTable';
 
-export const audienceEnum = pgEnum('audience', ['public', 'private']);
+export const audienceEnum = pgEnum('audience', [
+	'public',
+	'friends',
+	'private',
+]);
 
 export const postTable = pgTable(
 	'post',
@@ -20,13 +24,28 @@ export const postTable = pgTable(
 		user_id: integer('user_id')
 			.references(() => usersTable.id)
 			.notNull(),
-		content: text('content').notNull(),
+		content: text('content'),
 		audience: audienceEnum('audience').default('public'),
 		created_at: timestamp('created_at').defaultNow(),
 		updated_at: timestamp('updated_at').defaultNow(),
 	},
 	table => ({
 		uuidIdx: index('uuid').on(table.uuid),
+	}),
+);
+
+export const postImagesTable = pgTable(
+	'post_images',
+	{
+		id: serial('id').notNull().primaryKey(),
+		post_id: integer('post_id').references(() => postTable.id),
+		image: text('image').notNull(),
+		mime_type: text('mime_type').notNull(),
+		created_at: timestamp('created_at').defaultNow(),
+		updated_at: timestamp('updated_at').defaultNow(),
+	},
+	table => ({
+		postId: index('post_id').on(table.post_id),
 	}),
 );
 

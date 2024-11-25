@@ -4,7 +4,6 @@ import { db } from '@/db';
 import { eq, or, getTableColumns } from 'drizzle-orm';
 import { env } from '@/config/env';
 import { usersTable } from '@/models/usersTable';
-import crypto from 'crypto';
 import { avatarTable } from '@/models/avatarTable';
 
 export const getUser = async ({
@@ -50,12 +49,11 @@ export const getAllUsers = async ({
 
 export const uploadUserProfileImage = async (
 	userId: number,
-	file?: Express.Multer.File,
+	file?: Express.Request['file'],
 ) => {
 	if (!file) throw new BadRequestException('No File Uploaded');
 
-	const version = crypto.randomUUID();
-	const avatarId = `version-${version}-avatar-${userId}`;
+	const avatarId = `version-${file.filename}-avatar-${userId}`;
 
 	const user = (
 		await db.select().from(usersTable).where(eq(usersTable.id, userId))
