@@ -4,6 +4,7 @@ import type { Express, Request, Response } from 'express';
 import OpenAPIDocs from './docs/openapi-docs.json' assert { type: 'json' };
 import SwaggerUI from 'swagger-ui-express';
 import AuthRouter from './modules/auth/auth.route';
+import BookmarkRouter from './modules/bookmark/bookmark.route';
 import ChatRouter from './modules/chat/chat.route';
 import FeedRouter from './modules/feed/feed.route';
 import FriendRouter from './modules/friend/friend.route';
@@ -19,6 +20,7 @@ const apiPrefix = '/api/v1';
 
 export const renderRoutes = (app: Express) => {
 	apiRouter.use('/auth', AuthRouter);
+	apiRouter.use('/bookmark', BookmarkRouter);
 	apiRouter.use('/chats', ChatRouter);
 	apiRouter.use('/feed', FeedRouter);
 	apiRouter.use('/friends', FriendRouter);

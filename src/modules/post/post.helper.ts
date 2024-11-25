@@ -1,7 +1,7 @@
 import { db } from '@/db';
 import { and, eq } from 'drizzle-orm';
 import { postTable } from '@/models/postTable';
-import { usersBookmarkTable } from '@/models/usersTable';
+import { bookmarkTable } from '@/models/bookmarkTable';
 
 export const checkPostExistence = async (postId: number) => {
 	const exists = !!(
@@ -18,11 +18,11 @@ export const isPostSaved = async (userId: number, postId: number) => {
 	const isSaved = !!(
 		await db
 			.select()
-			.from(usersBookmarkTable)
+			.from(bookmarkTable)
 			.where(
 				and(
-					eq(usersBookmarkTable.user_id, userId),
-					eq(usersBookmarkTable.post_id, postId),
+					eq(bookmarkTable.user_id, userId),
+					eq(bookmarkTable.post_id, postId),
 				),
 			)
 	)[0];

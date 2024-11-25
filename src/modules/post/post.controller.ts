@@ -63,7 +63,7 @@ export const getUserPost = asyncHandler(async (req: Request, res: Response) => {
 	const uuid = req.params.uuid;
 
 	if (!validateUUID(uuid)) throw new NotFoundException('Post not found');
-	const post = await postService.findOne(sessionUserId, uuid);
+	const post = await postService.getUserPost(sessionUserId, uuid);
 
 	// allow user to view if he owns the post
 	const ableToView =
@@ -91,39 +91,3 @@ export const deletePost = asyncHandler(async (req: Request, res: Response) => {
 		message: `The post (${deletedPostId}) is successfully deleted`,
 	});
 });
-
-export const savePost = asyncHandler(
-	async (req: RouteParams<{ postId: string }>, res: Response) => {
-		const userId = res.locals.user!.id;
-		const postId = Number(req.params.postId);
-
-		if (!postId) throw new NotFoundException('Post not found');
-
-		const savePost = await postService.savePost(userId, postId);
-
-		if (!savePost) throw new ConflictException('This post already saved');
-
-		res.status(200).json({
-			sucess: true,
-			message: 'Post saved',
-		});
-	},
-);
-
-export const usSavePost = asyncHandler(
-	async (req: RouteParams<{ postId: string }>, res: Response) => {
-		const userId = res.locals.user!.id;
-		const postId = Number(req.params.postId);
-
-		if (!userId || !postId) throw new NotFoundException('Post not found');
-
-		const unSavePost = await postService.unSavePost(userId, postId);
-
-		if (!unSavePost) throw new NotFoundException('Post not found');
-
-		res.status(200).json({
-			sucess: true,
-			message: 'Post unsaved',
-		});
-	},
-);

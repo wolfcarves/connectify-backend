@@ -8,7 +8,10 @@ export const createPostInputSchema = registry.register(
 			.string()
 			.min(1, 'Content is required')
 			.max(5000, 'Maximum characters exceeded'),
-		audience: z.enum(['public', 'private']).default('public').optional(),
+		audience: z
+			.enum(['public', 'friends', 'private'])
+			.default('public')
+			.optional(),
 	}),
 );
 
@@ -19,6 +22,7 @@ export const postSchema = registry.register(
 	createPostInputSchema.extend({
 		id: z.number(),
 		uuid: z.string(),
+		isSaved: z.boolean(),
 		isLiked: z.boolean(),
 		created_at: z.date(),
 		updated_at: z.date(),

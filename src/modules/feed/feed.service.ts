@@ -1,8 +1,9 @@
 import { db } from '@/db';
 import { friendshipsTable } from '@/models/friendsTable';
 import { postLikeTable, postTable } from '@/models/postTable';
+import { bookmarkTable } from '@/models/bookmarkTable';
 import { usersTable } from '@/models/usersTable';
-import { and, desc, eq, or, sql } from 'drizzle-orm';
+import { and, desc, eq, ne, or, sql } from 'drizzle-orm';
 
 export const getFeedWorldPosts = async (
 	userId: number,
@@ -12,7 +13,15 @@ export const getFeedWorldPosts = async (
 	const posts = await db
 		.select()
 		.from(postTable)
+		.where(ne(postTable.user_id, userId))
 		.innerJoin(usersTable, eq(postTable.user_id, usersTable.id))
+		.leftJoin(
+			bookmarkTable,
+			and(
+				eq(bookmarkTable.user_id, userId),
+				eq(bookmarkTable.post_id, postTable.id),
+			),
+		)
 		.leftJoin(
 			postLikeTable,
 			and(
@@ -25,9 +34,10 @@ export const getFeedWorldPosts = async (
 		.offset((page - 1) * perPage);
 
 	const response = posts.map(p => {
-		const isLiked = p.post_likes?.id ? true : false;
+		const isSaved = !!p.bookmark?.id;
+		const isLiked = !!p.post_likes?.id;
 
-		const { user_id, ...restPost } = { ...p.post, isLiked };
+		const { user_id, ...restPost } = { ...p.post, isLiked, isSaved };
 		const { password, ...restUser } = p.user;
 
 		return {
@@ -47,6 +57,14 @@ export const getFeedFriendsPosts = async (
 	const posts = await db
 		.select()
 		.from(postTable)
+		.where(ne(postTable.user_id, userId))
+		.leftJoin(
+			bookmarkTable,
+			and(
+				eq(bookmarkTable.user_id, userId),
+				eq(bookmarkTable.post_id, postTable.id),
+			),
+		)
 		.innerJoin(usersTable, eq(postTable.user_id, usersTable.id))
 		.innerJoin(
 			friendshipsTable,
@@ -67,9 +85,10 @@ export const getFeedFriendsPosts = async (
 		.offset((page - 1) * perPage);
 
 	const response = posts.map(p => {
+		const isSaved = !!p.bookmark?.id;
 		const isLiked = !!p.post_likes?.id;
 
-		const { user_id, ...restPost } = { ...p.post, isLiked };
+		const { user_id, ...restPost } = { ...p.post, isLiked, isSaved };
 		const { password, ...restUser } = p.user;
 
 		return {

@@ -4,8 +4,8 @@ import { postLikeTable, postTable } from '@/models/postTable';
 import type { CreatePostInput } from './post.schema';
 import { db } from '@/db';
 import { and, desc, eq } from 'drizzle-orm';
-import { usersBookmarkTable, usersTable } from '@/models/usersTable';
-import { checkPostExistence, isPostSaved } from './post.helper';
+import { bookmarkTable } from '@/models/bookmarkTable';
+import { usersTable } from '@/models/usersTable';
 
 export const addPost = async (
 	userId: number,
@@ -30,6 +30,13 @@ export const getAllUserPosts = async (
 		.where(eq(postTable.user_id, paramUserId))
 		.innerJoin(usersTable, eq(postTable.user_id, usersTable.id))
 		.leftJoin(
+			bookmarkTable,
+			and(
+				eq(bookmarkTable.user_id, sessionUserId),
+				eq(bookmarkTable.post_id, postTable.id),
+			),
+		)
+		.leftJoin(
 			postLikeTable,
 			and(
 				eq(postLikeTable.user_id, sessionUserId),
@@ -41,9 +48,10 @@ export const getAllUserPosts = async (
 		.offset((page - 1) * per_page);
 
 	const response = posts.map(p => {
-		const isLiked = p.post_likes?.id ? true : false;
+		const isSaved = !!p.bookmark?.id;
+		const isLiked = !!p.post_likes?.id;
 
-		const { user_id, ...restPost } = { ...p.post, isLiked };
+		const { user_id, ...restPost } = { ...p.post, isLiked, isSaved };
 		const { password, ...restUser } = p.user;
 
 		return {
@@ -55,13 +63,20 @@ export const getAllUserPosts = async (
 	return response;
 };
 
-export const findOne = async (sessionUserId: number, uuid: string) => {
+export const getUserPost = async (sessionUserId: number, uuid: string) => {
 	const post = (
 		await db
 			.select()
 			.from(postTable)
 			.where(eq(postTable.uuid, uuid))
 			.innerJoin(usersTable, eq(postTable.user_id, usersTable.id))
+			.leftJoin(
+				bookmarkTable,
+				and(
+					eq(bookmarkTable.user_id, sessionUserId),
+					eq(bookmarkTable.post_id, postTable.id),
+				),
+			)
 			.leftJoin(
 				postLikeTable,
 				and(
@@ -72,9 +87,10 @@ export const findOne = async (sessionUserId: number, uuid: string) => {
 			.limit(1)
 	)[0];
 
-	const isLiked = post.post_likes?.id ? true : false;
+	const isSaved = !!post.bookmark?.id;
+	const isLiked = !!post.post_likes?.id;
 
-	const { user_id, ...restPost } = { ...post.post, isLiked };
+	const { user_id, ...restPost } = { ...post.post, isLiked, isSaved };
 	const { password, ...restUser } = post.user;
 
 	const response = {
@@ -92,36 +108,4 @@ export const deletePost = async (userId: number, postId: number) => {
 		.returning({
 			post_id: postTable.id,
 		});
-};
-
-export const savePost = async (userId: number, postId: number) => {
-	const isPostExists = await checkPostExistence(postId);
-	const isSaved = await isPostSaved(userId, postId);
-
-	if (isSaved || !isPostExists) return false;
-
-	await db.insert(usersBookmarkTable).values({
-		user_id: userId,
-		post_id: postId,
-	});
-
-	return true;
-};
-
-export const unSavePost = async (userId: number, postId: number) => {
-	const isPostExists = await checkPostExistence(postId);
-	const isNotSaved = !(await isPostSaved(userId, postId));
-
-	if (isNotSaved || !isPostExists) return false;
-
-	await db
-		.delete(usersBookmarkTable)
-		.where(
-			and(
-				eq(usersBookmarkTable.user_id, userId),
-				eq(usersBookmarkTable.post_id, postId),
-			),
-		);
-
-	return true;
 };

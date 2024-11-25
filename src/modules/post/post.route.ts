@@ -17,10 +17,4 @@ PostRouter.get('/:uuid', PostController.getUserPost);
 PostDocumentation.deleteUserPostDocs();
 PostRouter.delete('/:postId', requireAuth, PostController.deletePost);
 
-PostDocumentation.saveUserPostDocs();
-PostRouter.post('/save/:postId', requireAuth, PostController.savePost);
-
-PostDocumentation.unSaveUserPostDocs();
-PostRouter.post('/unsave/:postId', requireAuth, PostController.usSavePost);
-
 export default PostRouter;
