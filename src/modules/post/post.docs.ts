@@ -20,13 +20,14 @@ export const createPostDocs = () => {
 		request: {
 			body: {
 				content: {
-					'application/json': {
+					'multipart/form-data': {
 						schema: createPostInputSchema,
 					},
 				},
 				description: 'OK',
 			},
 		},
+
 		responses: {
 			200: {
 				description: 'OK',

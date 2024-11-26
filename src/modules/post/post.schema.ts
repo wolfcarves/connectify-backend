@@ -4,6 +4,7 @@ import { registry } from '@/lib/zodToOpenAPI';
 export const createPostInputSchema = registry.register(
 	'CreatePostInput',
 	z.object({
+		images: z.any(),
 		content: z
 			.string()
 			.min(1, 'Content is required')
@@ -27,4 +28,9 @@ export const postSchema = registry.register(
 		created_at: z.date(),
 		updated_at: z.date(),
 	}),
+);
+
+export const audienceSchema = registry.register(
+	'Audience',
+	z.enum(['public', 'friends', 'private']),
 );

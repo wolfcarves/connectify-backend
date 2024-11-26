@@ -8,19 +8,20 @@ import * as userService from '../user/user.service';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import type { RouteAndQueryParams, RouteParams } from '@/types/request';
 import validateUUID from '@/utils/validateUUID';
+import { deleteAllUploadedImages } from './post.helper';
 
 export const createPost = asyncHandler(
+	//5c1d1cb6-6a13-4615-b12b-0209727865d5
+
 	async (
 		req: Request<never, never, CreatePostInput, never>,
 		res: Response,
 	) => {
-		const files = req.files;
-
 		const userId = res.locals.user!.id;
 		const parsedInput = await createPostInputSchema.parseAsync(req.body);
 
-		await postService.addPost(userId, parsedInput, files);
-
+		// await postService.addPost(userId, parsedInput, req.files);
+		await deleteAllUploadedImages('5c1d1cb6-6a13-4615-b12b-0209727865d5');
 		res.status(201).json({
 			success: true,
 			message: 'Posted successfully',

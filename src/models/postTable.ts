@@ -20,7 +20,7 @@ export const postTable = pgTable(
 	'post',
 	{
 		id: serial('id').notNull().primaryKey(),
-		uuid: uuid('uuid').defaultRandom(),
+		uuid: uuid('uuid').defaultRandom().notNull(),
 		user_id: integer('user_id')
 			.references(() => usersTable.id)
 			.notNull(),

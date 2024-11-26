@@ -3,10 +3,14 @@ import asyncHandler from 'express-async-handler';
 import * as userService from './user.service';
 import type { QueryParams } from '@/types/request';
 import { checkFriendStatus } from '../friend/friend.helper';
+import { NotFoundException } from '@/exceptions/NotFoundException';
 
 export const uploadUserProfileImage = asyncHandler(
 	async (req: Request, res: Response) => {
 		const file = req.file;
+
+		if (!file) throw new NotFoundException('No image file received');
+
 		const user = res.locals.user!;
 
 		const result = await userService.uploadUserProfileImage(user.id, file);

@@ -1,13 +1,14 @@
 import { registry } from '@/lib/zodToOpenAPI';
 import {
 	badRequestErrorResponse,
+	notFoundErrorResponse,
 	serverErrorResponse,
 	unauthorizedErrorResponse,
 	validationErrorResponse,
 } from '@/helper/commonErrorResponse';
 import { successResponseSchema } from '@/schema/responseSchema';
 import { z } from 'zod';
-import { getUserProfileResponseSchema, userSchema } from './user.schema';
+import { getUserProfileResponseSchema } from './user.schema';
 
 export const uploadUserProfileImageDocs = () => {
 	registry.registerPath({
@@ -39,6 +40,7 @@ export const uploadUserProfileImageDocs = () => {
 			},
 
 			...badRequestErrorResponse,
+			...notFoundErrorResponse,
 			...validationErrorResponse,
 			...unauthorizedErrorResponse,
 			...serverErrorResponse,

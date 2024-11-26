@@ -8,52 +8,69 @@ import { bookmarkTable } from '@/models/bookmarkTable';
 import { usersTable } from '@/models/usersTable';
 import cloudinary from 'cloudinary';
 import pLimit from 'p-limit';
+import { ServerInternalException } from '@/exceptions/ServerInternalException';
+import { deleteAllUploadedImages } from './post.helper';
 
 export const addPost = async (
 	userId: number,
 	{ content, audience }: CreatePostInput,
 	files?: Express.Request['files'],
 ) => {
-	const limit = pLimit(10);
+	let postUUID = '';
 
-	if (files && Array.isArray(files)) {
-		await db.transaction(async tx => {
-			const [post] = await tx
-				.insert(postTable)
-				.values({
-					user_id: userId,
-					content,
-					audience,
-				})
-				.returning({ id: postTable.id });
+	try {
+		const limit = pLimit(10);
 
-			const imagesToUpload = files.map((file: Express.Multer.File) => {
-				return limit(async () => {
-					await cloudinary.v2.uploader.upload(file.path, {
-						public_id: file.filename,
-						folder: 'user-post',
-						resource_type: 'image',
-					});
+		if (files && Array.isArray(files)) {
+			await db.transaction(async tx => {
+				const [post] = await tx
+					.insert(postTable)
+					.values({
+						user_id: userId,
+						content,
+						audience,
+					})
+					.returning({ id: postTable.id, uuid: postTable.uuid });
 
-					await tx.insert(postImagesTable).values({
-						post_id: post.id,
-						image: file.filename,
-						mime_type: file.mimetype,
+				postUUID = post.uuid;
+
+				files.map((file: Express.Multer.File, idx: number) => {
+					return limit(async () => {
+						await cloudinary.v2.uploader
+							.upload(file.path, {
+								public_id: file.filename,
+								folder: `post/${post.uuid}`,
+								resource_type: 'image',
+							})
+							// Delete all uploaded files when one of the images fail
+							.catch(async () => {
+								await deleteAllUploadedImages(post.uuid);
+								throw new ServerInternalException(
+									'Image failed to upload',
+								);
+							});
+
+						await tx.insert(postImagesTable).values({
+							post_id: post.id,
+							image: file.filename,
+							mime_type: file.mimetype,
+						});
 					});
 				});
 			});
 
-			await Promise.all(imagesToUpload);
+			return;
+		}
+
+		await db.insert(postTable).values({
+			user_id: userId,
+			content,
+			audience,
 		});
-
-		return;
+	} catch (error) {
+		await deleteAllUploadedImages(postUUID ?? '');
+		throw new ServerInternalException('Something went wrong');
 	}
-
-	await db.insert(postTable).values({
-		user_id: userId,
-		content,
-		audience,
-	});
 };
 
 export const getAllUserPosts = async (

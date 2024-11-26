@@ -2,6 +2,7 @@ import { db } from '@/db';
 import { and, eq } from 'drizzle-orm';
 import { postTable } from '@/models/postTable';
 import { bookmarkTable } from '@/models/bookmarkTable';
+import cloudinary from 'cloudinary';
 
 export const checkPostExistence = async (postId: number) => {
 	const exists = !!(
@@ -28,4 +29,10 @@ export const isPostSaved = async (userId: number, postId: number) => {
 	)[0];
 
 	return isSaved;
+};
+
+export const deleteAllUploadedImages = async (postUUID?: string) => {
+	const response = await cloudinary.v2.api.delete_folder('post/' + postUUID);
+
+	console.log('response', response);
 };
