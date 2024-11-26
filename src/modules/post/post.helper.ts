@@ -32,7 +32,5 @@ export const isPostSaved = async (userId: number, postId: number) => {
 };
 
 export const deleteAllUploadedImages = async (postUUID?: string) => {
-	const response = await cloudinary.v2.api.delete_folder('post/' + postUUID);
-
-	console.log('response', response);
+	if (postUUID) await cloudinary.v2.api.delete_folder('post/' + postUUID);
 };

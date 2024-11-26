@@ -34,29 +34,33 @@ export const addPost = async (
 
 				postUUID = post.uuid;
 
-				files.map((file: Express.Multer.File, idx: number) => {
-					return limit(async () => {
-						await cloudinary.v2.uploader
-							.upload(file.path, {
-								public_id: file.filename,
-								folder: `post/${post.uuid}`,
-								resource_type: 'image',
-							})
-							// Delete all uploaded files when one of the images fail
-							.catch(async () => {
-								await deleteAllUploadedImages(post.uuid);
-								throw new ServerInternalException(
-									'Image failed to upload',
-								);
-							});
+				const imagesToUpload = files.map(
+					(file: Express.Multer.File, idx: number) => {
+						return limit(async () => {
+							const response = await cloudinary.v2.uploader
+								.upload(file.path, {
+									public_id: file.filename,
+									folder: `post/${post.uuid}`,
+									resource_type: 'image',
+								})
+								// Delete all uploaded files when one of the images fail
+								.catch(async () => {
+									await deleteAllUploadedImages(post.uuid);
+									throw new ServerInternalException(
+										'Image failed to upload',
+									);
+								});
 
-						await tx.insert(postImagesTable).values({
-							post_id: post.id,
-							image: file.filename,
-							mime_type: file.mimetype,
+							await tx.insert(postImagesTable).values({
+								post_id: post.id,
+								image: file.filename,
+								mime_type: file.mimetype,
+							});
 						});
-					});
-				});
+					},
+				);
+
+				await Promise.all(imagesToUpload);
 			});
 
 			return;
@@ -68,8 +72,13 @@ export const addPost = async (
 			audience,
 		});
 	} catch (error) {
-		await deleteAllUploadedImages(postUUID ?? '');
-		throw new ServerInternalException('Something went wrong');
+		if (error instanceof ServerInternalException) {
+			await deleteAllUploadedImages(postUUID ?? '');
+			postUUID = '';
+			throw new ServerInternalException(
+				error.message ?? 'Something went wrong',
+			);
+		}
 	}
 };
 
