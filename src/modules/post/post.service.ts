@@ -3,7 +3,7 @@
 import { postImagesTable, postLikeTable, postTable } from '@/models/postTable';
 import type { CreatePostInput } from './post.schema';
 import { db } from '@/db';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { bookmarkTable } from '@/models/bookmarkTable';
 import { usersTable } from '@/models/usersTable';
 import cloudinary from 'cloudinary';
@@ -37,10 +37,10 @@ export const addPost = async (
 				const imagesToUpload = files.map(
 					(file: Express.Multer.File, idx: number) => {
 						return limit(async () => {
-							const response = await cloudinary.v2.uploader
+							await cloudinary.v2.uploader
 								.upload(file.path, {
 									public_id: file.filename,
-									folder: `post/${post.uuid}`,
+									folder: `posts/${post.uuid}`,
 									resource_type: 'image',
 								})
 								// Delete all uploaded files when one of the images fail
@@ -86,13 +86,37 @@ export const getAllUserPosts = async (
 	sessionUserId: number,
 	paramUserId: number,
 	page: number,
-	per_page: number,
+	perPage: number,
 ) => {
 	const posts = await db
-		.select()
+		.selectDistinctOn([postTable.id], {
+			post: {
+				...postTable,
+				images: sql.raw(`
+						json_agg(
+							CASE
+								WHEN post_images.image IS NOT NULL THEN
+									jsonb_build_object(
+										'image', post_images.image,
+										'created_at', post_images.created_at,
+										'updated_at', post_images.updated_at
+									)
+							END
+						) FILTER (WHERE post_images.image IS NOT NULL) AS images
+				  `),
+				is_saved: sql.raw(
+					'bool_or(bookmark.id IS NOT NULL) as is_saved',
+				),
+				is_liked: sql.raw(
+					'bool_or(post_likes.id IS NOT NULL) as is_saved',
+				),
+			},
+			user: usersTable,
+		})
 		.from(postTable)
 		.where(eq(postTable.user_id, paramUserId))
 		.innerJoin(usersTable, eq(postTable.user_id, usersTable.id))
+		.leftJoin(postImagesTable, eq(postImagesTable.post_id, postTable.id))
 		.leftJoin(
 			bookmarkTable,
 			and(
@@ -107,33 +131,48 @@ export const getAllUserPosts = async (
 				eq(postTable.id, postLikeTable.post_id),
 			),
 		)
-		.orderBy(desc(postTable.created_at))
-		.limit(per_page)
-		.offset((page - 1) * per_page);
+		.orderBy(desc(postTable.id))
+		.limit(perPage)
+		.offset((page - 1) * perPage)
+		.groupBy(postTable.id, usersTable.id);
 
-	const response = posts.map(p => {
-		const isSaved = !!p.bookmark?.id;
-		const isLiked = !!p.post_likes?.id;
-
-		const { user_id, ...restPost } = { ...p.post, isLiked, isSaved };
-		const { password, ...restUser } = p.user;
-
-		return {
-			post: restPost,
-			user: restUser,
-		};
-	});
-
-	return response;
+	return posts;
 };
 
 export const getUserPost = async (sessionUserId: number, uuid: string) => {
 	const post = (
 		await db
-			.select()
+			.selectDistinctOn([postTable.id], {
+				post: {
+					...postTable,
+					images: sql.raw(`
+						json_agg(
+							CASE
+								WHEN post_images.image IS NOT NULL THEN
+									jsonb_build_object(
+										'image', post_images.image,
+										'created_at', post_images.created_at,
+										'updated_at', post_images.updated_at
+									)
+							END
+						) FILTER (WHERE post_images.image IS NOT NULL) AS images
+				  `),
+					is_saved: sql.raw(
+						'bool_or(bookmark.id IS NOT NULL) as is_saved',
+					),
+					is_liked: sql.raw(
+						'bool_or(post_likes.id IS NOT NULL) as is_saved',
+					),
+				},
+				user: usersTable,
+			})
 			.from(postTable)
 			.where(eq(postTable.uuid, uuid))
 			.innerJoin(usersTable, eq(postTable.user_id, usersTable.id))
+			.leftJoin(
+				postImagesTable,
+				eq(postImagesTable.post_id, postTable.id),
+			)
 			.leftJoin(
 				bookmarkTable,
 				and(
@@ -148,21 +187,12 @@ export const getUserPost = async (sessionUserId: number, uuid: string) => {
 					eq(postTable.id, postLikeTable.post_id),
 				),
 			)
+			.orderBy(desc(postTable.id))
+			.groupBy(postTable.id, usersTable.id)
 			.limit(1)
 	)[0];
 
-	const isSaved = !!post.bookmark?.id;
-	const isLiked = !!post.post_likes?.id;
-
-	const { user_id, ...restPost } = { ...post.post, isLiked, isSaved };
-	const { password, ...restUser } = post.user;
-
-	const response = {
-		post: restPost,
-		user: restUser,
-	};
-
-	return response;
+	return post;
 };
 
 export const deletePost = async (userId: number, postId: number) => {

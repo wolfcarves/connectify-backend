@@ -20,11 +20,18 @@ export type CreatePostInput = z.infer<typeof createPostInputSchema>;
 
 export const postSchema = registry.register(
 	'Post',
-	createPostInputSchema.extend({
+	createPostInputSchema.omit({ images: true }).extend({
 		id: z.number(),
 		uuid: z.string(),
-		isSaved: z.boolean(),
-		isLiked: z.boolean(),
+		is_saved: z.boolean(),
+		is_liked: z.boolean(),
+		images: z.array(
+			z.object({
+				image: z.string(),
+				created_at: z.date(),
+				updated_at: z.date(),
+			}),
+		),
 		created_at: z.date(),
 		updated_at: z.date(),
 	}),
