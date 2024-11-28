@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { and, eq } from 'drizzle-orm';
-import { postTable } from '@/models/postTable';
+import { postCommentTable, postTable } from '@/models/postTable';
 import { bookmarkTable } from '@/models/bookmarkTable';
 import cloudinary from 'cloudinary';
 

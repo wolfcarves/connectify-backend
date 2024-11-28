@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { commentInputSchema } from './engagement.schema';
+import { commentInputSchema, replyInputSchema } from './engagement.schema';
 import * as engagementService from './engagement.service';
 
 export const likePost = asyncHandler(async (req: Request, res: Response) => {
@@ -45,5 +45,19 @@ export const getComments = asyncHandler(async (req: Request, res: Response) => {
 	res.status(200).json({
 		success: true,
 		data: data,
+	});
+});
+
+export const createReply = asyncHandler(async (req: Request, res: Response) => {
+	const userId = res.locals.user!.id;
+	const commentId = Number(req.params.commentId);
+
+	const { reply } = await replyInputSchema.parseAsync(req.body);
+
+	await engagementService.addReply(userId, commentId, reply);
+
+	res.status(200).send({
+		success: true,
+		message: 'Comment Added',
 	});
 });

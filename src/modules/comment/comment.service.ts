@@ -1,46 +1,9 @@
-import {
-	postCommentTable,
-	postLikeTable,
-	postReplyTable,
-	postTable,
-} from '@/models/postTable';
+import { postCommentTable, postTable } from '@/models/postTable';
 import { db } from '@/db';
-import { and, asc, eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import { NotFoundException } from '@/exceptions/NotFoundException';
-import { checkCommentExistence, checkLikeExistence } from './engagement.helper';
 import { usersTable } from '@/models/usersTable';
 import { checkPostExistence } from '../post/post.helper';
-
-export const likePost = async (userId: number, postId: number) => {
-	const isLiked = await checkLikeExistence(userId, postId);
-	const isPostExists = await checkPostExistence(postId);
-
-	if (!isPostExists) throw new NotFoundException('Post not found');
-
-	if (isLiked) {
-		await db
-			.delete(postLikeTable)
-			.where(
-				and(
-					eq(postLikeTable.post_id, postId),
-					eq(postLikeTable.user_id, userId),
-				),
-			);
-
-		return {
-			message: 'Disliked',
-		};
-	}
-
-	await db.insert(postLikeTable).values({
-		user_id: userId,
-		post_id: postId,
-	});
-
-	return {
-		message: 'Liked',
-	};
-};
 
 export const addComment = async (
 	userId: number,
@@ -78,20 +41,4 @@ export const getComments = async (postId: number) => {
 		.orderBy(asc(postCommentTable.created_at));
 
 	return comments;
-};
-
-export const addReply = async (
-	userId: number,
-	commentId: number,
-	reply: string,
-) => {
-	const isCommentExists = await checkCommentExistence(commentId);
-
-	if (!isCommentExists) throw new NotFoundException('Comment not found');
-
-	return await db.insert(postReplyTable).values({
-		user_id: userId,
-		comment_id: commentId,
-		reply,
-	});
 };

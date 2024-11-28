@@ -22,10 +22,3 @@ export const commentSchema = registry.register(
 		updated_at: z.date(),
 	}),
 );
-
-export const replyInputSchema = registry.register(
-	'ReplyInput',
-	z.object({
-		reply: z.string().min(1, 'Reply should not be empty'),
-	}),
-);
