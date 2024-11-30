@@ -134,12 +134,7 @@ export const deleteUserPostDocs = () => {
 				description: 'OK',
 				content: {
 					'application/json': {
-						schema: z.object({
-							data: z.object({
-								post: postSchema,
-								user: userSchema,
-							}),
-						}),
+						schema: successResponseSchema,
 					},
 				},
 			},

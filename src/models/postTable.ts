@@ -38,7 +38,9 @@ export const postImagesTable = pgTable(
 	'post_images',
 	{
 		id: serial('id').notNull().primaryKey(),
-		post_id: integer('post_id').references(() => postTable.id),
+		post_id: integer('post_id').references(() => postTable.id, {
+			onDelete: 'cascade',
+		}),
 		image: text('image').notNull(),
 		mime_type: text('mime_type').notNull(),
 		created_at: timestamp('created_at').defaultNow(),
@@ -64,7 +66,9 @@ export const postLikeTable = pgTable('post_likes', {
 export const postCommentTable = pgTable('post_comments', {
 	id: serial('id').primaryKey(),
 	user_id: integer('user_id').references(() => usersTable.id),
-	post_id: integer('post_id').references(() => postTable.id),
+	post_id: integer('post_id').references(() => postTable.id, {
+		onDelete: 'cascade',
+	}),
 	comment: text('comment').notNull(),
 	created_at: timestamp('created_at').defaultNow(),
 	updated_at: timestamp('updated_at').defaultNow(),

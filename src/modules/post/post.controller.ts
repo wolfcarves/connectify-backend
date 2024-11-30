@@ -8,6 +8,7 @@ import * as userService from '../user/user.service';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import type { RouteAndQueryParams } from '@/types/request';
 import validateUUID from '@/utils/validateUUID';
+import { deleteAllUploadedImages } from './post.helper';
 
 export const createPost = asyncHandler(
 	async (
@@ -82,6 +83,8 @@ export const deletePost = asyncHandler(async (req: Request, res: Response) => {
 
 	const deletedPost = await postService.deletePost(userId, postId);
 	const deletedPostId = deletedPost?.[0]?.post_id;
+	const deletedPostUUID = deletedPost?.[0]?.post_uuid;
+	await deleteAllUploadedImages(deletedPostUUID);
 
 	if (!deletedPostId) throw new NotFoundException('Post not found');
 

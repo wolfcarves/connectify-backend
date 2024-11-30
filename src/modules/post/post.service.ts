@@ -201,5 +201,6 @@ export const deletePost = async (userId: number, postId: number) => {
 		.where(and(eq(postTable.user_id, userId), eq(postTable.id, postId)))
 		.returning({
 			post_id: postTable.id,
+			post_uuid: postTable.uuid,
 		});
 };
