@@ -1,5 +1,9 @@
 import { registry } from '@/lib/zodToOpenAPI';
-import { createPostInputSchema, postSchema } from './post.schema';
+import {
+	audienceSchema,
+	createPostInputSchema,
+	postSchema,
+} from './post.schema';
 import {
 	notFoundErrorResponse,
 	serverErrorResponse,
@@ -128,6 +132,42 @@ export const deleteUserPostDocs = () => {
 			params: z.object({
 				postId: z.number(),
 			}),
+		},
+		responses: {
+			200: {
+				description: 'OK',
+				content: {
+					'application/json': {
+						schema: successResponseSchema,
+					},
+				},
+			},
+			...notFoundErrorResponse,
+			...serverErrorResponse,
+		},
+	});
+};
+
+export const changeAudienceDocs = () => {
+	registry.registerPath({
+		tags: ['Post'],
+		method: 'put',
+		path: '/api/v1/post/audience/{postId}',
+		operationId: 'putChangeAudience',
+		summary: 'Change Post Audience',
+		request: {
+			params: z.object({
+				postId: z.number(),
+			}),
+			body: {
+				content: {
+					'application/json': {
+						schema: z.object({
+							audience: audienceSchema,
+						}),
+					},
+				},
+			},
 		},
 		responses: {
 			200: {

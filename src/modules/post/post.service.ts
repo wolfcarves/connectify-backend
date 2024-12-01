@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { postImagesTable, postLikeTable, postTable } from '@/models/postTable';
-import type { CreatePostInput } from './post.schema';
+import type { audienceSchema, CreatePostInput } from './post.schema';
 import { db } from '@/db';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { bookmarkTable } from '@/models/bookmarkTable';
@@ -10,6 +10,7 @@ import cloudinary from 'cloudinary';
 import pLimit from 'p-limit';
 import { ServerInternalException } from '@/exceptions/ServerInternalException';
 import { deleteAllUploadedImages } from './post.helper';
+import { NotFoundException } from '@/exceptions/NotFoundException';
 
 export const addPost = async (
 	userId: number,
@@ -196,11 +197,33 @@ export const getUserPost = async (sessionUserId: number, uuid: string) => {
 };
 
 export const deletePost = async (userId: number, postId: number) => {
-	return await db
-		.delete(postTable)
-		.where(and(eq(postTable.user_id, userId), eq(postTable.id, postId)))
-		.returning({
-			post_id: postTable.id,
-			post_uuid: postTable.uuid,
-		});
+	const deletedPost = (
+		await db
+			.delete(postTable)
+			.where(and(eq(postTable.user_id, userId), eq(postTable.id, postId)))
+			.returning({
+				post_id: postTable.id,
+				post_uuid: postTable.uuid,
+			})
+	)[0];
+
+	const deletedPostId = deletedPost?.post_id;
+	const deletedPostUUID = deletedPost?.post_uuid;
+	await deleteAllUploadedImages(deletedPostUUID);
+
+	if (!deletedPostId) throw new NotFoundException('Post not found');
+
+	return deletedPost;
+};
+
+export const updatePostAudience = async (
+	postId: number,
+	audience: 'public' | 'friends' | 'private',
+) => {
+	return db
+		.update(postTable)
+		.set({
+			audience,
+		})
+		.where(eq(postTable.id, postId));
 };

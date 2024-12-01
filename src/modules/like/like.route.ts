@@ -6,6 +6,6 @@ import * as LikeDocumentation from './like.docs';
 const LikeRouter = Router();
 
 LikeDocumentation.likePostDocs();
-LikeRouter.post('/:postId', requireAuth, LikeController.likePost);
+LikeRouter.post('/post/:postId', requireAuth, LikeController.likePost);
 
 export default LikeRouter;

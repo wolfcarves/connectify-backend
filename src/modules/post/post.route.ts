@@ -25,4 +25,7 @@ PostRouter.get('/:uuid', PostController.getUserPost);
 PostDocumentation.deleteUserPostDocs();
 PostRouter.delete('/:postId', requireAuth, PostController.deletePost);
 
+PostDocumentation.changeAudienceDocs();
+PostRouter.put('/audience/:postId', requireAuth, PostController.changeAudience);
+
 export default PostRouter;

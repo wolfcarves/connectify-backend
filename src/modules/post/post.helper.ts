@@ -34,11 +34,15 @@ export const isPostSaved = async (userId: number, postId: number) => {
 export const deleteAllUploadedImages = async (postUUID?: string) => {
 	if (postUUID) {
 		await cloudinary.v2.api
-			.delete_resources_by_prefix('posts/' + postUUID)
-			.catch(err => console.log('post', { ...err }));
+			.delete_resources_by_prefix(`posts/${postUUID}/`)
+			.catch(err => {
+				// console.log('post', { ...err })
+			});
 
 		await cloudinary.v2.api
-			.delete_folder('posts/' + postUUID)
-			.catch(err => console.log('post', { ...err }));
+			.delete_folder(`posts/${postUUID}/`)
+			.catch(err => {
+				// console.log('post', { ...err })
+			});
 	}
 };

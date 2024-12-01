@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { registry } from '@/lib/zodToOpenAPI';
 
+export const audienceSchema = registry.register(
+	'Audience',
+	z.enum(['public', 'friends', 'private']),
+);
+
 export const createPostInputSchema = registry.register(
 	'CreatePostInput',
 	z.object({
@@ -9,10 +14,7 @@ export const createPostInputSchema = registry.register(
 			.string()
 			.min(1, 'Content is required')
 			.max(5000, 'Maximum characters exceeded'),
-		audience: z
-			.enum(['public', 'friends', 'private'])
-			.default('public')
-			.optional(),
+		audience: audienceSchema,
 	}),
 );
 
@@ -35,9 +37,4 @@ export const postSchema = registry.register(
 		created_at: z.date(),
 		updated_at: z.date(),
 	}),
-);
-
-export const audienceSchema = registry.register(
-	'Audience',
-	z.enum(['public', 'friends', 'private']),
 );

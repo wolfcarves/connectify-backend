@@ -1,14 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import type { Request, Response } from 'express';
-import { createPostInputSchema, type CreatePostInput } from './post.schema';
+import {
+	audienceSchema,
+	createPostInputSchema,
+	type CreatePostInput,
+} from './post.schema';
 import asyncHandler from 'express-async-handler';
 import * as postService from './post.service';
 import * as userService from '../user/user.service';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import type { RouteAndQueryParams } from '@/types/request';
 import validateUUID from '@/utils/validateUUID';
-import { deleteAllUploadedImages } from './post.helper';
 
 export const createPost = asyncHandler(
 	async (
@@ -82,14 +85,27 @@ export const deletePost = asyncHandler(async (req: Request, res: Response) => {
 	const postId = Number(req.params.postId);
 
 	const deletedPost = await postService.deletePost(userId, postId);
-	const deletedPostId = deletedPost?.[0]?.post_id;
-	const deletedPostUUID = deletedPost?.[0]?.post_uuid;
-	await deleteAllUploadedImages(deletedPostUUID);
-
-	if (!deletedPostId) throw new NotFoundException('Post not found');
 
 	res.status(200).json({
 		sucess: true,
-		message: `The post (${deletedPostId}) is successfully deleted`,
+		message: `The post (${deletedPost.post_id}) is successfully deleted`,
 	});
 });
+
+export const changeAudience = asyncHandler(
+	async (
+		req: Request<{ postId: string }, never, { audience: string }, never>,
+		res: Response,
+	) => {
+		const postId = Number(req.params.postId);
+
+		const audience = await audienceSchema.parseAsync(req.body.audience);
+
+		await postService.updatePostAudience(Number(postId), audience);
+
+		res.status(200).json({
+			sucess: true,
+			message: 'Audience updated',
+		});
+	},
+);
