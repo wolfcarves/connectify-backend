@@ -38,9 +38,11 @@ export const postImagesTable = pgTable(
 	'post_images',
 	{
 		id: serial('id').notNull().primaryKey(),
-		post_id: integer('post_id').references(() => postTable.id, {
-			onDelete: 'cascade',
-		}),
+		post_id: integer('post_id')
+			.references(() => postTable.id, {
+				onDelete: 'cascade',
+			})
+			.notNull(),
 		image: text('image').notNull(),
 		mime_type: text('mime_type').notNull(),
 		created_at: timestamp('created_at').defaultNow(),
@@ -67,10 +69,14 @@ export const postLikeTable = pgTable('post_likes', {
 
 export const postCommentTable = pgTable('post_comments', {
 	id: serial('id').primaryKey(),
-	user_id: integer('user_id').references(() => usersTable.id),
-	post_id: integer('post_id').references(() => postTable.id, {
-		onDelete: 'cascade',
-	}),
+	user_id: integer('user_id')
+		.references(() => usersTable.id)
+		.notNull(),
+	post_id: integer('post_id')
+		.references(() => postTable.id, {
+			onDelete: 'cascade',
+		})
+		.notNull(),
 	comment: text('comment').notNull(),
 	created_at: timestamp('created_at').defaultNow(),
 	updated_at: timestamp('updated_at').defaultNow(),
@@ -78,8 +84,12 @@ export const postCommentTable = pgTable('post_comments', {
 
 export const postReplyTable = pgTable('post_reply', {
 	id: serial('id').primaryKey(),
-	user_id: integer('user_id').references(() => usersTable.id),
-	comment_id: integer('post_id').references(() => postTable.id),
+	user_id: integer('user_id')
+		.references(() => usersTable.id, { onDelete: 'cascade' })
+		.notNull(),
+	comment_id: integer('comment_id')
+		.references(() => postCommentTable.id, { onDelete: 'cascade' })
+		.notNull(),
 	reply: text('reply').notNull(),
 	created_at: timestamp('created_at').defaultNow(),
 	updated_at: timestamp('updated_at').defaultNow(),
@@ -87,8 +97,12 @@ export const postReplyTable = pgTable('post_reply', {
 
 export const postShareTable = pgTable('post_shares', {
 	id: serial('id').primaryKey(),
-	user_id: integer('user_id').references(() => usersTable.id),
-	post_id: integer('post_id').references(() => postTable.id),
+	user_id: integer('user_id')
+		.references(() => usersTable.id)
+		.notNull(),
+	post_id: integer('post_id')
+		.references(() => postTable.id)
+		.notNull(),
 	comment: text('comment'),
 	created_at: timestamp('created_at').defaultNow(),
 	updated_at: timestamp('updated_at').defaultNow(),

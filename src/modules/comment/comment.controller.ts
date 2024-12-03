@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express';
+import type { RouteParams } from '@/types/request';
 import asyncHandler from 'express-async-handler';
 import { commentInputSchema } from './comment.schema';
-import * as engagementService from './comment.service';
+import * as commentService from './comment.service';
 
 export const createComment = asyncHandler(
 	async (req: Request, res: Response) => {
@@ -10,7 +11,7 @@ export const createComment = asyncHandler(
 
 		const { comment } = await commentInputSchema.parseAsync(req.body);
 
-		await engagementService.addComment(userId, postId, comment);
+		await commentService.addComment(userId, postId, comment);
 
 		res.status(200).send({
 			success: true,
@@ -19,13 +20,14 @@ export const createComment = asyncHandler(
 	},
 );
 
-export const getComments = asyncHandler(async (req: Request, res: Response) => {
-	const postId = Number(req.params.postId);
+export const getComments = asyncHandler(
+	async (req: RouteParams<{ postId: string }>, res: Response) => {
+		const postId = Number(req.params.postId);
 
-	const data = await engagementService.getComments(postId);
+		const data = await commentService.getComments(postId);
 
-	res.status(200).json({
-		success: true,
-		data: data,
-	});
-});
+		res.status(200).json({
+			data: data,
+		});
+	},
+);

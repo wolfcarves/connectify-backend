@@ -11,7 +11,7 @@ export const getFeedWorldPosts = async (
 	perPage: number,
 ) => {
 	const posts = await db
-		.selectDistinctOn([postTable.id], {
+		.select({
 			post: {
 				...postTable,
 				images: sql.raw(`
@@ -30,10 +30,15 @@ export const getFeedWorldPosts = async (
 					'bool_or(bookmark.id IS NOT NULL) as is_saved',
 				),
 				is_liked: sql.raw(
-					'bool_or(post_likes.id IS NOT NULL) as is_saved',
+					'bool_or(post_likes.id IS NOT NULL) as is_liked',
 				),
 			},
-			user: usersTable,
+			user: {
+				...usersTable,
+				// is_friend: sql.raw(
+				// 	'bool_or(friendships.id IS NOT NULL) as is_saved',
+				// ),
+			},
 		})
 		.from(postTable)
 		.innerJoin(usersTable, eq(postTable.user_id, usersTable.id))
@@ -52,6 +57,21 @@ export const getFeedWorldPosts = async (
 				eq(postTable.id, postLikeTable.post_id),
 			),
 		)
+		.leftJoin(
+			friendshipsTable,
+			or(
+				and(
+					eq(friendshipsTable.user_id, postTable.user_id),
+					eq(friendshipsTable.friend_id, userId),
+				),
+				and(
+					eq(friendshipsTable.user_id, userId),
+					eq(friendshipsTable.friend_id, postTable.user_id),
+				),
+			),
+		)
+		// .having(sql.raw(`bool_or(friendships.id IS NOT NULL)`))
+		.where(eq(postTable.audience, 'public'))
 		.orderBy(desc(postTable.id))
 		.limit(perPage)
 		.offset((page - 1) * perPage)
@@ -66,7 +86,7 @@ export const getFeedFriendsPosts = async (
 	perPage: number,
 ) => {
 	const result = await db
-		.selectDistinctOn([postTable.id], {
+		.select({
 			post: {
 				...postTable,
 				images: sql.raw(
@@ -89,7 +109,7 @@ export const getFeedFriendsPosts = async (
 			user: usersTable,
 		})
 		.from(postTable)
-		.where(ne(postTable.user_id, userId))
+		.where(ne(postTable.audience, 'private'))
 		.innerJoin(usersTable, eq(postTable.user_id, usersTable.id))
 		.innerJoin(
 			friendshipsTable,
@@ -115,9 +135,8 @@ export const getFeedFriendsPosts = async (
 		)
 		.limit(perPage)
 		.offset((page - 1) * perPage)
-		.groupBy(postTable.id, usersTable.id);
+		.groupBy(postTable.id, usersTable.id)
+		.orderBy(sql`RANDOM()`);
 
-	const shuffledResult = result.sort(() => Math.random() - 0.5);
-
-	return shuffledResult;
+	return result;
 };

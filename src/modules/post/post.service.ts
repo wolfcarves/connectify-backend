@@ -3,7 +3,7 @@
 import { postImagesTable, postLikeTable, postTable } from '@/models/postTable';
 import type { audienceSchema, CreatePostInput } from './post.schema';
 import { db } from '@/db';
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, ne, or, sql } from 'drizzle-orm';
 import { bookmarkTable } from '@/models/bookmarkTable';
 import { usersTable } from '@/models/usersTable';
 import cloudinary from 'cloudinary';
@@ -109,13 +109,21 @@ export const getAllUserPosts = async (
 					'bool_or(bookmark.id IS NOT NULL) as is_saved',
 				),
 				is_liked: sql.raw(
-					'bool_or(post_likes.id IS NOT NULL) as is_saved',
+					'bool_or(post_likes.id IS NOT NULL) as is_liked',
 				),
 			},
 			user: usersTable,
 		})
 		.from(postTable)
-		.where(eq(postTable.user_id, paramUserId))
+		.where(
+			and(
+				eq(postTable.user_id, paramUserId),
+				or(
+					eq(postTable.user_id, sessionUserId),
+					ne(postTable.audience, 'private'),
+				),
+			),
+		)
 		.innerJoin(usersTable, eq(postTable.user_id, usersTable.id))
 		.leftJoin(postImagesTable, eq(postImagesTable.post_id, postTable.id))
 		.leftJoin(
@@ -162,7 +170,7 @@ export const getUserPost = async (sessionUserId: number, uuid: string) => {
 						'bool_or(bookmark.id IS NOT NULL) as is_saved',
 					),
 					is_liked: sql.raw(
-						'bool_or(post_likes.id IS NOT NULL) as is_saved',
+						'bool_or(post_likes.id IS NOT NULL) as is_liked',
 					),
 				},
 				user: usersTable,

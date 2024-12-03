@@ -106,12 +106,10 @@ export const getCurrentSession = asyncHandler(
 	async (_req: Request, res: Response) => {
 		const userId = res.locals.user?.id;
 
-		if (!userId) {
-			throw new ForbiddenException('No Authorization');
-		}
+		if (!userId) throw new ForbiddenException('No Authorization');
 
 		const session = await userService.getUser({
-			userId,
+			userId: userId!,
 		});
 
 		res.status(200).json({

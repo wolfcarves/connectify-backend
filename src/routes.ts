@@ -12,6 +12,7 @@ import FriendRouter from './modules/friend/friend.route';
 import HealthRouter from './modules/health/health.route';
 import LikeRouter from './modules/like/like.route';
 import PostRouter from './modules/post/post.route';
+import ReplyRouter from './modules/reply/reply.route';
 import UserRouter from './modules/user/user.route';
 import express from 'express';
 import { env } from './config/env';
@@ -29,6 +30,7 @@ export const renderRoutes = (app: Express) => {
 	apiRouter.use('/health', HealthRouter);
 	apiRouter.use('/like', LikeRouter);
 	apiRouter.use('/post', PostRouter);
+	apiRouter.use('/reply', ReplyRouter);
 	apiRouter.use('/user', UserRouter);
 
 	apiRouter.get('/health', (req: Request, res: Response) => {

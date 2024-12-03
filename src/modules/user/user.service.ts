@@ -1,10 +1,11 @@
 import cloudinary from 'cloudinary';
 import { BadRequestException } from '@/exceptions/BadRequestException';
 import { db } from '@/db';
-import { eq, or, getTableColumns } from 'drizzle-orm';
+import { eq, or, getTableColumns, sql } from 'drizzle-orm';
 import { env } from '@/config/env';
 import { usersTable } from '@/models/usersTable';
 import { avatarTable } from '@/models/avatarTable';
+import { friendshipsTable } from '@/models/friendsTable';
 
 export const getUser = async ({
 	userId,
@@ -17,7 +18,20 @@ export const getUser = async ({
 }) => {
 	const user = (
 		await db
-			.select()
+			.select({
+				id: usersTable.id,
+				avatar: usersTable.avatar,
+				email: usersTable.email,
+				name: usersTable.name,
+				username: usersTable.username,
+				city: usersTable.city,
+				password: usersTable.password,
+				friends_count: sql<number>`COUNT(friendships.id)`.as(
+					'friends_count',
+				),
+				created_at: usersTable.created_at,
+				updated_at: usersTable.updated_at,
+			})
 			.from(usersTable)
 			.where(
 				or(
@@ -26,6 +40,14 @@ export const getUser = async ({
 					eq(usersTable.email, email ?? ''),
 				),
 			)
+			.leftJoin(
+				friendshipsTable,
+				or(
+					eq(friendshipsTable.user_id, userId ?? -1),
+					eq(friendshipsTable.friend_id, userId ?? -1),
+				),
+			)
+			.groupBy(usersTable.id)
 			.limit(1)
 	)[0];
 

@@ -9,6 +9,7 @@ export const userSchema = registry.register(
 		email: z.string().email(),
 		name: z.string(),
 		username: z.string(),
+		friends_count: z.number(),
 		created_at: z.string(),
 		updated_at: z.string(),
 	}),

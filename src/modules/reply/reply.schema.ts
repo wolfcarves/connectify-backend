@@ -1,16 +1,16 @@
 import { z } from 'zod';
 import { registry } from '@/lib/zodToOpenAPI';
 
-export const commentInputSchema = registry.register(
-	'CommentInput',
+export const replyInputSchema = registry.register(
+	'ReplyInput',
 	z.object({
-		comment: z.string().min(1, 'Comment should not be empty'),
+		comment: z.string().min(1, 'Reply should not be empty'),
 	}),
 );
 
-export const commentSchema = registry.register(
-	'Comment',
-	commentInputSchema.extend({
+export const replySchema = registry.register(
+	'Reply',
+	replyInputSchema.extend({
 		id: z.number(),
 		user: z.object({
 			id: z.number(),
@@ -18,8 +18,7 @@ export const commentSchema = registry.register(
 			name: z.string(),
 			username: z.string(),
 		}),
-		comment: z.string(),
-		replies_count: z.number(),
+		reply: z.string(),
 		created_at: z.date(),
 		updated_at: z.date(),
 	}),

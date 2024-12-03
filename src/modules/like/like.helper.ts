@@ -1,4 +1,4 @@
-import { postCommentTable, postLikeTable, postTable } from '@/models/postTable';
+import { postCommentTable, postLikeTable } from '@/models/postTable';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/db';
 
@@ -22,7 +22,7 @@ export const checkCommentExistence = async (commentId: number) => {
 	const exists = !!(
 		await db
 			.select()
-			.from(postTable)
+			.from(postCommentTable)
 			.where(and(eq(postCommentTable.id, commentId)))
 	)[0];
 
