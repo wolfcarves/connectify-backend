@@ -24,9 +24,24 @@ export const addComment = async (
 	});
 };
 
-export const getComments = async (postId: number) => {
+export const getComments = async ({
+	postId,
+	page,
+	perPage,
+}: {
+	postId: number;
+	page: number;
+	perPage: number;
+}) => {
 	const isPostExists = await checkPostExistence(postId);
 	if (!isPostExists) throw new NotFoundException('Post not found');
+
+	const totalCommentsCount = (
+		await db
+			.select()
+			.from(postCommentTable)
+			.where(eq(postCommentTable.post_id, postId))
+	).length;
 
 	const comments = await db
 		.select({
@@ -51,7 +66,16 @@ export const getComments = async (postId: number) => {
 		.innerJoin(postTable, eq(postCommentTable.post_id, postTable.id))
 		.innerJoin(usersTable, eq(postCommentTable.user_id, usersTable.id))
 		.orderBy(asc(postCommentTable.created_at))
-		.groupBy(usersTable.id, postCommentTable.id);
+		.groupBy(usersTable.id, postCommentTable.id)
+		.offset((page - 1) * perPage)
+		.limit(perPage);
 
-	return comments;
+	const itemsTaken = page * perPage;
+	const remaining = totalCommentsCount - itemsTaken;
+
+	return {
+		comments,
+		total: totalCommentsCount,
+		remaining: remaining === -1 ? 0 : remaining,
+	};
 };

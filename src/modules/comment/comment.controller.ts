@@ -1,8 +1,9 @@
 import type { Request, Response } from 'express';
-import type { RouteParams } from '@/types/request';
+import type { RouteAndQueryParams } from '@/types/request';
 import asyncHandler from 'express-async-handler';
 import { commentInputSchema } from './comment.schema';
 import * as commentService from './comment.service';
+import { COMMENTS_PER_PAGE } from './comment.constant';
 
 export const createComment = asyncHandler(
 	async (req: Request, res: Response) => {
@@ -21,13 +22,33 @@ export const createComment = asyncHandler(
 );
 
 export const getComments = asyncHandler(
-	async (req: RouteParams<{ postId: string }>, res: Response) => {
+	async (
+		req: RouteAndQueryParams<
+			{ postId: string },
+			{ page?: string; per_page?: string }
+		>,
+		res: Response,
+	) => {
 		const postId = Number(req.params.postId);
 
-		const data = await commentService.getComments(postId);
+		const page = Number(req.query.page);
+		const perPage = Number(req.query.per_page) ?? COMMENTS_PER_PAGE;
+
+		const { comments, total, remaining } = await commentService.getComments(
+			{
+				postId,
+				page,
+				perPage,
+			},
+		);
 
 		res.status(200).json({
-			data: data,
+			data: comments,
+			pagination: {
+				page,
+				total_items: total,
+				remaining_items: remaining,
+			},
 		});
 	},
 );

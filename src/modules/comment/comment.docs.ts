@@ -4,7 +4,10 @@ import {
 	serverErrorResponse,
 	unauthorizedErrorResponse,
 } from '@/helper/commonErrorResponse';
-import { successResponseSchema } from '@/schema/responseSchema';
+import {
+	paginationResponseSchema,
+	successResponseSchema,
+} from '@/schema/responseSchema';
 import { z } from 'zod';
 import { commentSchema } from './comment.schema';
 
@@ -64,6 +67,7 @@ export const getPostCommentsDocs = () => {
 					'application/json': {
 						schema: z.object({
 							data: z.array(commentSchema),
+							pagination: paginationResponseSchema,
 						}),
 					},
 				},
