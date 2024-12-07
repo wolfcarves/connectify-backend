@@ -12,7 +12,7 @@ export const successResponseSchema = registry.register(
 export const paginationResponseSchema = registry.register(
 	'Pagination',
 	z.object({
-		page: z.number(),
+		current_page: z.number(),
 		total_items: z.number(),
 		remaining_items: z.number(),
 	}),

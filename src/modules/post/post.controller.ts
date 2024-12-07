@@ -21,11 +21,14 @@ export const createPost = asyncHandler(
 		const userId = res.locals.user!.id;
 		const parsedInput = await createPostInputSchema.parseAsync(req.body);
 
-		await postService.addPost(userId, parsedInput, req.files);
+		const createdPost = await postService.addPost(
+			userId,
+			parsedInput,
+			req.files,
+		);
 
 		res.status(201).json({
-			success: true,
-			message: 'Posted successfully',
+			data: createdPost,
 		});
 	},
 );

@@ -4,10 +4,7 @@ import {
 	serverErrorResponse,
 	unauthorizedErrorResponse,
 } from '@/helper/commonErrorResponse';
-import {
-	paginationResponseSchema,
-	successResponseSchema,
-} from '@/schema/responseSchema';
+import { paginationResponseSchema } from '@/schema/responseSchema';
 import { z } from 'zod';
 import { commentSchema } from './comment.schema';
 
@@ -21,6 +18,7 @@ export const createPostCommentDocs = () => {
 		request: {
 			params: z.object({
 				postId: z.number(),
+				commentId: z.number(),
 			}),
 			body: {
 				content: {
@@ -37,7 +35,11 @@ export const createPostCommentDocs = () => {
 				description: 'OK',
 				content: {
 					'application/json': {
-						schema: successResponseSchema,
+						schema: z.object({
+							data: z.object({
+								id: z.number(),
+							}),
+						}),
 					},
 				},
 			},
@@ -58,6 +60,9 @@ export const getPostCommentsDocs = () => {
 		request: {
 			params: z.object({
 				postId: z.number(),
+			}),
+			query: z.object({
+				page: z.number().optional(),
 			}),
 		},
 		responses: {

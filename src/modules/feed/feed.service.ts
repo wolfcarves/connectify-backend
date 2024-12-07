@@ -10,6 +10,13 @@ export const getFeedWorldPosts = async (
 	page: number,
 	perPage: number,
 ) => {
+	const postsCount = (
+		await db
+			.select()
+			.from(postTable)
+			.where(eq(postTable.audience, 'public'))
+	).length;
+
 	const posts = await db
 		.select({
 			post: {
@@ -77,7 +84,14 @@ export const getFeedWorldPosts = async (
 		.offset((page - 1) * perPage)
 		.groupBy(postTable.id, usersTable.id);
 
-	return posts;
+	const itemsTaken = page * perPage;
+	const remaining = postsCount - itemsTaken;
+
+	return {
+		posts,
+		total: postsCount,
+		remaining: Math.max(0, remaining),
+	};
 };
 
 export const getFeedFriendsPosts = async (

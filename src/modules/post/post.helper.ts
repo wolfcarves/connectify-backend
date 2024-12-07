@@ -4,7 +4,12 @@ import { postTable } from '@/models/postTable';
 import { bookmarkTable } from '@/models/bookmarkTable';
 import cloudinary from 'cloudinary';
 
-export const checkPostExistence = async (postId: number) => {
+export const checkPostExistence = async (postId?: number) => {
+	if (!postId) {
+		console.log('postId is undefined!');
+		return false;
+	}
+
 	const exists = !!(
 		await db
 			.select()

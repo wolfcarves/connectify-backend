@@ -16,14 +16,14 @@ export const addPost = async (
 	userId: number,
 	{ content, audience }: CreatePostInput,
 	files?: Express.Request['files'],
-) => {
+): Promise<{ id: number; uuid: string } | undefined> => {
 	let postUUID = '';
 
 	try {
 		const limit = pLimit(10);
 
 		if (files && Array.isArray(files)) {
-			await db.transaction(async tx => {
+			const createPost = await db.transaction(async tx => {
 				const [post] = await tx
 					.insert(postTable)
 					.values({
@@ -62,16 +62,22 @@ export const addPost = async (
 				);
 
 				await Promise.all(imagesToUpload);
+				return post;
 			});
 
-			return;
+			return createPost;
 		}
 
-		await db.insert(postTable).values({
-			user_id: userId,
-			content,
-			audience,
-		});
+		const [post] = await db
+			.insert(postTable)
+			.values({
+				user_id: userId,
+				content,
+				audience,
+			})
+			.returning({ id: postTable.id, uuid: postTable.uuid });
+
+		return post;
 	} catch (error) {
 		if (error instanceof ServerInternalException) {
 			await deleteAllUploadedImages(postUUID ?? '');

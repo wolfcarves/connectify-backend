@@ -7,6 +7,7 @@ import {
 	timestamp,
 	uuid,
 	index,
+	foreignKey,
 } from 'drizzle-orm/pg-core';
 import { usersTable } from './usersTable';
 
@@ -67,20 +68,27 @@ export const postLikeTable = pgTable('post_likes', {
 	updated_at: timestamp('updated_at').$onUpdate(() => new Date()),
 });
 
-export const postCommentTable = pgTable('post_comments', {
-	id: serial('id').primaryKey(),
-	user_id: integer('user_id')
-		.references(() => usersTable.id)
-		.notNull(),
-	post_id: integer('post_id')
-		.references(() => postTable.id, {
+export const postCommentTable = pgTable(
+	'post_comments',
+	{
+		id: serial('id').primaryKey(),
+		user_id: integer('user_id').references(() => usersTable.id),
+		post_id: integer('post_id').references(() => postTable.id, {
 			onDelete: 'cascade',
-		})
-		.notNull(),
-	comment: text('comment').notNull(),
-	created_at: timestamp('created_at').defaultNow(),
-	updated_at: timestamp('updated_at').defaultNow(),
-});
+		}),
+		comment_id: integer('comment_id'),
+		comment: text('comment').notNull(),
+		created_at: timestamp('created_at').defaultNow(),
+		updated_at: timestamp('updated_at').defaultNow(),
+	},
+	table => ({
+		parentReference: foreignKey({
+			columns: [table.comment_id],
+			foreignColumns: [table.id],
+			name: 'post_comment_id_fkey',
+		}),
+	}),
+);
 
 export const postReplyTable = pgTable('post_reply', {
 	id: serial('id').primaryKey(),

@@ -37,7 +37,12 @@ export const createPostDocs = () => {
 				description: 'OK',
 				content: {
 					'application/json': {
-						schema: successResponseSchema,
+						schema: z.object({
+							data: z.object({
+								id: z.number(),
+								uuid: z.string(),
+							}),
+						}),
 					},
 				},
 			},

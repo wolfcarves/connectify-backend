@@ -1,27 +1,35 @@
-import type { Request, Response } from 'express';
-import type { RouteAndQueryParams } from '@/types/request';
+import type { Response } from 'express';
+import type { QueryParams, RouteAndQueryParams } from '@/types/request';
 import asyncHandler from 'express-async-handler';
 import { commentInputSchema } from './comment.schema';
 import * as commentService from './comment.service';
 import { COMMENTS_PER_PAGE } from './comment.constant';
 
 export const createComment = asyncHandler(
-	async (req: Request, res: Response) => {
+	async (
+		req: QueryParams<{ postId: string; commentId: string }>,
+		res: Response,
+	) => {
 		const userId = res.locals.user!.id;
-		const postId = Number(req.params.postId);
+		const postId = Number(req.query.postId);
+		const commentId = Number(req.query.commentId);
 
 		const { comment } = await commentInputSchema.parseAsync(req.body);
 
-		await commentService.addComment(userId, postId, comment);
+		const createdComment = await commentService.addComment(
+			userId,
+			postId,
+			commentId,
+			comment,
+		);
 
 		res.status(200).send({
-			success: true,
-			message: 'Comment Added',
+			data: createdComment,
 		});
 	},
 );
 
-export const getComments = asyncHandler(
+export const getCommentsByPost = asyncHandler(
 	async (
 		req: RouteAndQueryParams<
 			{ postId: string },
@@ -29,13 +37,15 @@ export const getComments = asyncHandler(
 		>,
 		res: Response,
 	) => {
+		const userId = Number(res.locals.user?.id);
 		const postId = Number(req.params.postId);
 
-		const page = Number(req.query.page);
-		const perPage = Number(req.query.per_page) ?? COMMENTS_PER_PAGE;
+		const page = Number(req.query.page) || 1;
+		const perPage = Number(req.query.per_page) || COMMENTS_PER_PAGE;
 
 		const { comments, total, remaining } = await commentService.getComments(
 			{
+				userId,
 				postId,
 				page,
 				perPage,
@@ -45,7 +55,7 @@ export const getComments = asyncHandler(
 		res.status(200).json({
 			data: comments,
 			pagination: {
-				page,
+				current_page: page,
 				total_items: total,
 				remaining_items: remaining,
 			},

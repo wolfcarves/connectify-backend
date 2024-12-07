@@ -6,6 +6,7 @@ import {
 import { registry } from '@/lib/zodToOpenAPI';
 import { postSchema } from '../post/post.schema';
 import { userSchema } from '../user/user.schema';
+import { paginationResponseSchema } from '@/schema/responseSchema';
 
 export const getFeedWorldPosts = () => {
 	registry.registerPath({
@@ -32,6 +33,7 @@ export const getFeedWorldPosts = () => {
 									user: userSchema,
 								}),
 							),
+							pagination: paginationResponseSchema,
 						}),
 					},
 				},

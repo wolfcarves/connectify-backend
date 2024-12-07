@@ -6,13 +6,13 @@ import * as CommentDocumentation from './comment.docs';
 const CommentRouter = Router();
 
 CommentDocumentation.createPostCommentDocs();
-CommentRouter.post(
-	'/post/:postId',
-	requireAuth,
-	CommentController.createComment,
-);
+CommentRouter.post('/', requireAuth, CommentController.createComment);
 
 CommentDocumentation.getPostCommentsDocs();
-CommentRouter.get('/post/:postId', requireAuth, CommentController.getComments);
+CommentRouter.get(
+	'/post/:postId',
+	requireAuth,
+	CommentController.getCommentsByPost,
+);
 
 export default CommentRouter;

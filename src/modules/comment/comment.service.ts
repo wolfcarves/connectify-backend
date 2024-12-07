@@ -4,31 +4,56 @@ import {
 	postTable,
 } from '@/models/postTable';
 import { db } from '@/db';
-import { asc, eq, count } from 'drizzle-orm';
+import { asc, eq, count, sql } from 'drizzle-orm';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import { usersTable } from '@/models/usersTable';
 import { checkPostExistence } from '../post/post.helper';
+import { checkCommentExistence } from './comment.helper';
 
 export const addComment = async (
 	userId: number,
-	postId: number,
+	postId: number | undefined,
+	commentId: number | undefined,
 	comment: string,
-) => {
+): Promise<{ id: number }> => {
 	const isPostExists = await checkPostExistence(postId);
-	if (!isPostExists) throw new NotFoundException('Post not found');
+	const isCommentExists = await checkCommentExistence(commentId);
 
-	return await db.insert(postCommentTable).values({
-		user_id: userId,
-		post_id: postId,
-		comment,
-	});
+	if (!isPostExists && !isCommentExists)
+		throw new NotFoundException('Post or comment not found');
+
+	if (postId) {
+		return (
+			await db
+				.insert(postCommentTable)
+				.values({
+					user_id: userId,
+					post_id: postId,
+					comment,
+				})
+				.returning({ id: postCommentTable.id })
+		)[0];
+	}
+
+	return (
+		await db
+			.insert(postCommentTable)
+			.values({
+				user_id: userId,
+				comment_id: commentId,
+				comment,
+			})
+			.returning({ id: postCommentTable.id })
+	)[0];
 };
 
 export const getComments = async ({
+	userId,
 	postId,
 	page,
 	perPage,
 }: {
+	userId: number;
 	postId: number;
 	page: number;
 	perPage: number;
@@ -36,7 +61,7 @@ export const getComments = async ({
 	const isPostExists = await checkPostExistence(postId);
 	if (!isPostExists) throw new NotFoundException('Post not found');
 
-	const totalCommentsCount = (
+	const commentsCount = (
 		await db
 			.select()
 			.from(postCommentTable)
@@ -65,17 +90,20 @@ export const getComments = async ({
 		)
 		.innerJoin(postTable, eq(postCommentTable.post_id, postTable.id))
 		.innerJoin(usersTable, eq(postCommentTable.user_id, usersTable.id))
-		.orderBy(asc(postCommentTable.created_at))
+		.orderBy(
+			sql`CASE WHEN ${postCommentTable.user_id} = ${userId} THEN 0 ELSE 1 END`,
+			asc(postCommentTable.created_at),
+		)
 		.groupBy(usersTable.id, postCommentTable.id)
 		.offset((page - 1) * perPage)
 		.limit(perPage);
 
 	const itemsTaken = page * perPage;
-	const remaining = totalCommentsCount - itemsTaken;
+	const remaining = commentsCount - itemsTaken;
 
 	return {
 		comments,
-		total: totalCommentsCount,
-		remaining: remaining === -1 ? 0 : remaining,
+		total: commentsCount,
+		remaining: Math.max(0, remaining),
 	};
 };
