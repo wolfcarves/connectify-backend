@@ -1,10 +1,6 @@
-import {
-	postCommentTable,
-	postReplyTable,
-	postTable,
-} from '@/models/postTable';
+import { postCommentTable, postTable } from '@/models/postTable';
 import { db } from '@/db';
-import { asc, eq, count, sql } from 'drizzle-orm';
+import { asc, eq, sql, aliasedTable, and, isNull, count } from 'drizzle-orm';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import { usersTable } from '@/models/usersTable';
 import { checkPostExistence } from '../post/post.helper';
@@ -14,34 +10,20 @@ export const addComment = async (
 	userId: number,
 	postId: number | undefined,
 	commentId: number | undefined,
-	comment: string,
+	content: string,
 ): Promise<{ id: number }> => {
 	const isPostExists = await checkPostExistence(postId);
-	const isCommentExists = await checkCommentExistence(commentId);
 
-	if (!isPostExists && !isCommentExists)
-		throw new NotFoundException('Post or comment not found');
-
-	if (postId) {
-		return (
-			await db
-				.insert(postCommentTable)
-				.values({
-					user_id: userId,
-					post_id: postId,
-					comment,
-				})
-				.returning({ id: postCommentTable.id })
-		)[0];
-	}
+	if (!isPostExists) throw new NotFoundException('Resources not found');
 
 	return (
 		await db
 			.insert(postCommentTable)
 			.values({
 				user_id: userId,
-				comment_id: commentId,
-				comment,
+				post_id: postId,
+				comment_id: commentId || null,
+				content,
 			})
 			.returning({ id: postCommentTable.id })
 	)[0];
@@ -50,23 +32,22 @@ export const addComment = async (
 export const getComments = async ({
 	userId,
 	postId,
+	commentId,
 	page,
 	perPage,
 }: {
 	userId: number;
 	postId: number;
+	commentId: number;
 	page: number;
 	perPage: number;
 }) => {
 	const isPostExists = await checkPostExistence(postId);
-	if (!isPostExists) throw new NotFoundException('Post not found');
+	const isCommentExists = await checkCommentExistence(commentId);
+	if (!isPostExists && !isCommentExists)
+		throw new NotFoundException('Resources not found');
 
-	const commentsCount = (
-		await db
-			.select()
-			.from(postCommentTable)
-			.where(eq(postCommentTable.post_id, postId))
-	).length;
+	const postRepliesTable = aliasedTable(postCommentTable, 'post_replies');
 
 	const comments = await db
 		.select({
@@ -77,16 +58,28 @@ export const getComments = async ({
 				name: usersTable.name,
 				username: usersTable.username,
 			},
-			comment: postCommentTable.comment,
-			replies_count: count(postReplyTable.id),
+			content: postCommentTable.content,
+			replies_count: count(postCommentTable.id),
 			created_at: postCommentTable.created_at,
 			updated_at: postCommentTable.updated_at,
 		})
 		.from(postCommentTable)
-		.where(eq(postCommentTable.post_id, postId))
+		.where(
+			commentId
+				? and(
+						eq(postCommentTable.post_id, postId),
+						eq(postCommentTable.comment_id, commentId),
+					)
+				: and(
+						eq(postCommentTable.post_id, postId),
+						isNull(postCommentTable.comment_id),
+					),
+		)
 		.leftJoin(
-			postReplyTable,
-			eq(postReplyTable.comment_id, postCommentTable.id),
+			postRepliesTable,
+			!commentId
+				? eq(postCommentTable.id, postRepliesTable.comment_id)
+				: eq(postCommentTable.id, -1),
 		)
 		.innerJoin(postTable, eq(postCommentTable.post_id, postTable.id))
 		.innerJoin(usersTable, eq(postCommentTable.user_id, usersTable.id))
@@ -98,12 +91,30 @@ export const getComments = async ({
 		.offset((page - 1) * perPage)
 		.limit(perPage);
 
+	let totalCount: number = 0;
+
+	if (postId)
+		totalCount = (
+			await db
+				.select()
+				.from(postCommentTable)
+				.where(eq(postCommentTable.post_id, postId))
+		).length;
+
+	if (commentId)
+		totalCount = (
+			await db
+				.select()
+				.from(postCommentTable)
+				.where(eq(postCommentTable.comment_id, commentId))
+		).length;
+
 	const itemsTaken = page * perPage;
-	const remaining = commentsCount - itemsTaken;
+	const remaining = totalCount - itemsTaken;
 
 	return {
 		comments,
-		total: commentsCount,
+		total: totalCount,
 		remaining: Math.max(0, remaining),
 	};
 };

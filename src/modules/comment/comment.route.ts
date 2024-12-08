@@ -9,10 +9,6 @@ CommentDocumentation.createPostCommentDocs();
 CommentRouter.post('/', requireAuth, CommentController.createComment);
 
 CommentDocumentation.getPostCommentsDocs();
-CommentRouter.get(
-	'/post/:postId',
-	requireAuth,
-	CommentController.getCommentsByPost,
-);
+CommentRouter.get('/', requireAuth, CommentController.getComments);
 
 export default CommentRouter;

@@ -7,8 +7,9 @@ import {
 	timestamp,
 	uuid,
 	index,
-	foreignKey,
 } from 'drizzle-orm/pg-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+
 import { usersTable } from './usersTable';
 
 export const audienceEnum = pgEnum('audience', [
@@ -68,37 +69,17 @@ export const postLikeTable = pgTable('post_likes', {
 	updated_at: timestamp('updated_at').$onUpdate(() => new Date()),
 });
 
-export const postCommentTable = pgTable(
-	'post_comments',
-	{
-		id: serial('id').primaryKey(),
-		user_id: integer('user_id').references(() => usersTable.id),
-		post_id: integer('post_id').references(() => postTable.id, {
-			onDelete: 'cascade',
-		}),
-		comment_id: integer('comment_id'),
-		comment: text('comment').notNull(),
-		created_at: timestamp('created_at').defaultNow(),
-		updated_at: timestamp('updated_at').defaultNow(),
-	},
-	table => ({
-		parentReference: foreignKey({
-			columns: [table.comment_id],
-			foreignColumns: [table.id],
-			name: 'post_comment_id_fkey',
-		}),
-	}),
-);
-
-export const postReplyTable = pgTable('post_reply', {
+export const postCommentTable = pgTable('post_comments', {
 	id: serial('id').primaryKey(),
-	user_id: integer('user_id')
-		.references(() => usersTable.id, { onDelete: 'cascade' })
-		.notNull(),
-	comment_id: integer('comment_id')
-		.references(() => postCommentTable.id, { onDelete: 'cascade' })
-		.notNull(),
-	reply: text('reply').notNull(),
+	user_id: integer('user_id').references(() => usersTable.id),
+	post_id: integer('post_id').references(() => postTable.id, {
+		onDelete: 'cascade',
+	}),
+	comment_id: integer('comment_id').references(
+		(): AnyPgColumn => postCommentTable.id,
+		{ onDelete: 'cascade' },
+	),
+	content: text('content').notNull(),
 	created_at: timestamp('created_at').defaultNow(),
 	updated_at: timestamp('updated_at').defaultNow(),
 });

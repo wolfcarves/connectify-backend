@@ -4,7 +4,7 @@ import { registry } from '@/lib/zodToOpenAPI';
 export const commentInputSchema = registry.register(
 	'CommentInput',
 	z.object({
-		comment: z.string().min(1, 'Comment should not be empty'),
+		content: z.string().min(1, 'Comment should not be empty'),
 	}),
 );
 
@@ -18,7 +18,7 @@ export const commentSchema = registry.register(
 			name: z.string(),
 			username: z.string(),
 		}),
-		comment: z.string(),
+		content: z.string(),
 		replies_count: z.number(),
 		created_at: z.date(),
 		updated_at: z.date(),

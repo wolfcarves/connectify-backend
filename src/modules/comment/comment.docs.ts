@@ -12,19 +12,19 @@ export const createPostCommentDocs = () => {
 	registry.registerPath({
 		tags: ['Comment'],
 		method: 'post',
-		path: '/api/v1/comment/post/{postId}',
+		path: '/api/v1/comment',
 		operationId: 'postPostComment',
 		summary: 'Comment To User Posts',
 		request: {
-			params: z.object({
-				postId: z.number(),
-				commentId: z.number(),
+			query: z.object({
+				postId: z.number().optional(),
+				commentId: z.number().optional(),
 			}),
 			body: {
 				content: {
 					'application/json': {
 						schema: z.object({
-							comment: z.string(),
+							content: z.string(),
 						}),
 					},
 				},
@@ -54,15 +54,15 @@ export const getPostCommentsDocs = () => {
 	registry.registerPath({
 		tags: ['Comment'],
 		method: 'get',
-		path: '/api/v1/comment/post/{postId}',
+		path: '/api/v1/comment',
 		operationId: 'getPostComments',
 		summary: 'Get Post Comments',
 		request: {
-			params: z.object({
-				postId: z.number(),
-			}),
 			query: z.object({
+				postId: z.number(),
+				commentId: z.number().optional(),
 				page: z.number().optional(),
+				perPage: z.number().optional(),
 			}),
 		},
 		responses: {

@@ -6,7 +6,6 @@ import cloudinary from 'cloudinary';
 
 export const checkPostExistence = async (postId?: number) => {
 	if (!postId) {
-		console.log('postId is undefined!');
 		return false;
 	}
 

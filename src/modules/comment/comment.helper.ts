@@ -4,8 +4,6 @@ import { db } from '@/db';
 
 export const checkCommentExistence = async (commentId?: number) => {
 	if (!commentId) {
-		console.log('commentId is undefined');
-
 		return false;
 	}
 
