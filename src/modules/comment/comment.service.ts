@@ -4,7 +4,10 @@ import { asc, eq, sql, aliasedTable, and, isNull, count } from 'drizzle-orm';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import { usersTable } from '@/models/usersTable';
 import { checkPostExistence } from '../post/post.helper';
-import { checkCommentExistence } from './comment.helper';
+import {
+	checkCommentExistence,
+	checkIfCommentAssociatedWithPost,
+} from './comment.helper';
 
 export const addComment = async (
 	userId: number,
@@ -47,6 +50,14 @@ export const getComments = async ({
 	if (!isPostExists && !isCommentExists)
 		throw new NotFoundException('Resources not found');
 
+	if (commentId) {
+		const _isCommentAssociatedWithPost =
+			await checkIfCommentAssociatedWithPost(postId, commentId);
+
+		if (!_isCommentAssociatedWithPost)
+			throw new NotFoundException('Comment not found');
+	}
+
 	const postRepliesTable = aliasedTable(postCommentTable, 'post_replies');
 
 	const comments = await db
@@ -59,7 +70,7 @@ export const getComments = async ({
 				username: usersTable.username,
 			},
 			content: postCommentTable.content,
-			replies_count: count(postCommentTable.id),
+			replies_count: count(postRepliesTable.id),
 			created_at: postCommentTable.created_at,
 			updated_at: postCommentTable.updated_at,
 		})
@@ -77,9 +88,9 @@ export const getComments = async ({
 		)
 		.leftJoin(
 			postRepliesTable,
-			!commentId
+			commentId
 				? eq(postCommentTable.id, postRepliesTable.comment_id)
-				: eq(postCommentTable.id, -1),
+				: eq(postCommentTable.id, postRepliesTable.comment_id),
 		)
 		.innerJoin(postTable, eq(postCommentTable.post_id, postTable.id))
 		.innerJoin(usersTable, eq(postCommentTable.user_id, usersTable.id))
