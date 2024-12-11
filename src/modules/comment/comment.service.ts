@@ -102,6 +102,8 @@ export const getComments = async ({
 		.offset((page - 1) * perPage)
 		.limit(perPage);
 
+	if (comments.length === 0) throw new NotFoundException('No comments found');
+
 	let totalCount: number = 0;
 
 	if (postId)
@@ -109,7 +111,12 @@ export const getComments = async ({
 			await db
 				.select()
 				.from(postCommentTable)
-				.where(eq(postCommentTable.post_id, postId))
+				.where(
+					and(
+						eq(postCommentTable.post_id, postId),
+						isNull(postCommentTable.comment_id),
+					),
+				)
 		).length;
 
 	if (commentId)

@@ -1,4 +1,4 @@
-import { postCommentTable, postTable } from '@/models/postTable';
+import { postCommentTable } from '@/models/postTable';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/db';
 
