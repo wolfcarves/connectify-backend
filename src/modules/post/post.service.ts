@@ -93,7 +93,7 @@ export const getAllUserPosts = async (
 	sessionUserId: number,
 	paramUserId: number,
 	page: number,
-	perPage: number,
+	per_page: number,
 ) => {
 	const posts = await db
 		.selectDistinctOn([postTable.id], {
@@ -147,8 +147,8 @@ export const getAllUserPosts = async (
 			),
 		)
 		.orderBy(desc(postTable.id))
-		.limit(perPage)
-		.offset((page - 1) * perPage)
+		.limit(per_page)
+		.offset((page - 1) * per_page)
 		.groupBy(postTable.id, usersTable.id);
 
 	return posts;

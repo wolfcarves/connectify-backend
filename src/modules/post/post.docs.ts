@@ -31,7 +31,6 @@ export const createPostDocs = () => {
 				description: 'OK',
 			},
 		},
-
 		responses: {
 			200: {
 				description: 'OK',

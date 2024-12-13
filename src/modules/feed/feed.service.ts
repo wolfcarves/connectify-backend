@@ -8,7 +8,7 @@ import { and, desc, eq, ne, or, sql } from 'drizzle-orm';
 export const getFeedWorldPosts = async (
 	userId: number,
 	page: number,
-	perPage: number,
+	per_page: number,
 ) => {
 	const postsCount = (
 		await db
@@ -80,11 +80,11 @@ export const getFeedWorldPosts = async (
 		// .having(sql.raw(`bool_or(friendships.id IS NOT NULL)`))
 		.where(eq(postTable.audience, 'public'))
 		.orderBy(desc(postTable.id))
-		.limit(perPage)
-		.offset((page - 1) * perPage)
+		.limit(per_page)
+		.offset((page - 1) * per_page)
 		.groupBy(postTable.id, usersTable.id);
 
-	const itemsTaken = page * perPage;
+	const itemsTaken = page * per_page;
 	const remaining = postsCount - itemsTaken;
 
 	return {
@@ -97,7 +97,7 @@ export const getFeedWorldPosts = async (
 export const getFeedFriendsPosts = async (
 	userId: number,
 	page: number,
-	perPage: number,
+	per_page: number,
 ) => {
 	const result = await db
 		.select({
@@ -147,8 +147,8 @@ export const getFeedFriendsPosts = async (
 				eq(postTable.id, postLikeTable.post_id),
 			),
 		)
-		.limit(perPage)
-		.offset((page - 1) * perPage)
+		.limit(per_page)
+		.offset((page - 1) * per_page)
 		.groupBy(postTable.id, usersTable.id)
 		.orderBy(sql`RANDOM()`);
 

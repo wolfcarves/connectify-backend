@@ -1,6 +1,6 @@
-import { ForbiddenException } from '@/exceptions/ForbiddenException';
 import type { NextFunction, Request, Response } from 'express';
 import { lucia } from '@/lib/auth';
+import { UnauthorizedException } from '@/exceptions/UnauthorizedException';
 
 export const validateSession = async (
 	req: Request,
@@ -45,7 +45,7 @@ export const requireAuth = (
 ) => {
 	const user = res.locals.user;
 
-	if (!user) throw new ForbiddenException('Forbidden to access resources');
+	if (!user) throw new UnauthorizedException('Forbidden to access resources');
 
 	next();
 };

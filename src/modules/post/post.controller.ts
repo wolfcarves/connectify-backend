@@ -45,7 +45,7 @@ export const getUserPosts = asyncHandler(
 		const paramsUsername = req.params.username;
 
 		const page = Number(req.query.page) ?? 1;
-		const per_page = Number(req.query.per_page) ?? 10;
+		const perPage = Number(req.query.per_page) ?? 10;
 
 		const user = await userService.getUser({ username: paramsUsername });
 
@@ -53,7 +53,7 @@ export const getUserPosts = asyncHandler(
 			sessionUserId,
 			user.id,
 			page,
-			per_page,
+			perPage,
 		);
 
 		if (posts.length === 0) throw new NotFoundException('No posts found');

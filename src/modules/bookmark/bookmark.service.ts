@@ -8,7 +8,7 @@ import { usersTable } from '@/models/usersTable';
 export const getBookmarks = async (
 	userId: number,
 	page: number,
-	per_page: number,
+	perPage: number,
 ) => {
 	const bookmarks = await db
 		.select({
@@ -34,8 +34,8 @@ export const getBookmarks = async (
 		.innerJoin(usersTable, eq(usersTable.id, postTable.user_id))
 		.where(eq(bookmarkTable.user_id, userId))
 		.orderBy(desc(bookmarkTable.created_at))
-		.limit(per_page)
-		.offset((page - 1) * per_page);
+		.limit(perPage)
+		.offset((page - 1) * perPage);
 
 	return bookmarks;
 };

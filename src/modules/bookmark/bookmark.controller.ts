@@ -13,12 +13,12 @@ export const getBookmarks = asyncHandler(
 		const userId = res.locals.user!.id;
 
 		const page = Number(req.query.page) ?? 1;
-		const per_page = Number(req.query.per_page) ?? 15;
+		const perPage = Number(req.query.per_page) ?? 15;
 
 		const bookmarks = await bookmarkService.getBookmarks(
 			userId,
 			page,
-			per_page,
+			perPage,
 		);
 
 		res.status(200).json({

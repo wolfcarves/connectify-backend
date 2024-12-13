@@ -62,7 +62,7 @@ export const getPostCommentsDocs = () => {
 				postId: z.number(),
 				commentId: z.number().optional(),
 				page: z.number().optional(),
-				perPage: z.number().optional(),
+				per_page: z.number().optional(),
 			}),
 		},
 		responses: {

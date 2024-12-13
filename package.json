@@ -37,6 +37,7 @@
 		"multer": "^1.4.5-lts.1",
 		"p-limit": "^6.1.0",
 		"postgres": "^3.4.4",
+		"socket.io": "^4.8.1",
 		"swagger-ui-express": "^5.0.1",
 		"ts-patch": "^3.2.1",
 		"uninstall": "^0.0.0",
