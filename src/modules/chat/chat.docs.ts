@@ -8,9 +8,10 @@ import {
 } from '@/helper/commonErrorResponse';
 import { z } from 'zod';
 import {
+	chatMessageSchema,
+	chatSchema,
 	chatSendMessageInputSchema,
 	chatSendMessageResponseSchema,
-	getChatsResponseSchema,
 } from './chat.schema';
 import { paginationResponseSchema } from '@/schema/responseSchema';
 
@@ -33,7 +34,39 @@ export const getChatsDocs = () => {
 				content: {
 					'application/json': {
 						schema: z.object({
-							data: getChatsResponseSchema,
+							data: z.array(chatSchema),
+							pagination: paginationResponseSchema,
+						}),
+					},
+				},
+			},
+			...unauthorizedErrorResponse,
+			...notFoundErrorResponse,
+			...badRequestErrorResponse,
+			...serverErrorResponse,
+		},
+	});
+};
+
+export const getChatMessagesDocs = () => {
+	registry.registerPath({
+		tags: ['Chat'],
+		method: 'get',
+		path: '/api/v1/chats/{chatId}',
+		operationId: 'getChatMessages',
+		summary: 'Get Chat Messages',
+		request: {
+			params: z.object({
+				chatId: z.number(),
+			}),
+		},
+		responses: {
+			200: {
+				description: 'OK',
+				content: {
+					'application/json': {
+						schema: z.object({
+							data: z.array(chatMessageSchema),
 							pagination: paginationResponseSchema,
 						}),
 					},
@@ -55,6 +88,10 @@ export const sendMessageDocs = () => {
 		operationId: 'postChatSendMessage',
 		summary: 'Send Chat Message',
 		request: {
+			query: z.object({
+				recipientId: z.number().optional(),
+				chatId: z.number().optional(),
+			}),
 			body: {
 				content: {
 					'application/json': {

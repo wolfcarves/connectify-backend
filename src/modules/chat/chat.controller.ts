@@ -1,8 +1,8 @@
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import * as chatService from './chat.service';
 import type { Body, QueryParams, RouteAndQueryParams } from '@/types/request';
-import { socketIO } from '@/lib/socket';
+import { chatSendMessageInputSchema } from './chat.schema';
 
 export const getChats = asyncHandler(
 	async (
@@ -28,52 +28,58 @@ export const getChats = asyncHandler(
 	},
 );
 
-export const getChatConversation = asyncHandler(
+export const getChatMessages = asyncHandler(
 	async (
 		req: RouteAndQueryParams<
-			{ friendId: string },
+			{ chatId: string },
 			{ page: string; per_page: string }
 		>,
 		res: Response,
 	) => {
 		const userId = res.locals.user!.id;
-		const friendId = Number(req.params.friendId);
+		const chatId = Number(req.params.chatId);
 
 		const page = Number(req.query.page) || 1;
 		const perPage = Number(req.query.per_page) || 10;
 
-		// const { chats, total_items, remaining_items } =
-		await chatService.getChatConversation(userId, friendId, page, perPage);
+		const { chats, total_items, remaining_items } =
+			await chatService.getChatMessages(userId, chatId, page, perPage);
+
+		res.status(200).json({
+			data: chats,
+			pagination: {
+				current_page: page,
+				total_items,
+				remaining_items,
+			},
+		});
 	},
 );
 
 export const sendMessage = asyncHandler(
 	async (
-		req: Body<{ recipientId: string; message: string }>,
+		req: Request<
+			never,
+			never,
+			{ content: string },
+			{ chatId?: string; recipientId?: string }
+		>,
 		res: Response,
 	) => {
-		const socket = socketIO();
+		const senderId = res.locals.user!.id;
+		const chatId = Number(req.query.chatId) || undefined;
+		const recipientId = Number(req.query.recipientId) || undefined;
+		const content = req.body.content;
 
-		const userId = res.locals.user!.id;
-		const message = req.body.message;
-		const recipientId = Number(req.body.recipientId);
-
-		socket.emit('receive_message', message);
-
-		// await sendMessageInputSchema.parseAsync({
-		// 	recipientId,
-		// 	message,
-		// });
-
-		// const response = await chatService.sendMessage(
-		// 	userId,
-		// 	recipientId,
-		// 	message,
-		// );
+		const response = await chatService.sendMessage(
+			senderId,
+			content,
+			chatId,
+			recipientId,
+		);
 
 		res.status(201).json({
-			data: 'success',
-			// data: response,
+			data: response,
 		});
 	},
 );

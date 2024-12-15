@@ -17,8 +17,8 @@ import { writeDocumentation } from './lib/zodToOpenAPI';
 import { corsOptions } from './config/corsOptions';
 import cloudinary from 'cloudinary';
 import { cloudinaryOptions } from './config/cloundinaryOptions';
-import http from 'http';
 import { initializeSocketIO } from './lib/socket';
+import http from 'http';
 
 const app = express();
 const server = http.createServer(app);
@@ -50,15 +50,20 @@ app.use(errorHandler);
 app.use(notFoundHandler);
 
 io.on('connection', socket => {
-	console.log('User connected', socket.id);
+	// console.log('User connected', socket.id);
 
-	// socket.on('send_message', data => {
-	// 	console.log('data', data);
-	// });
-
-	socket.on('disconnect', () => {
-		console.log('User disconnected');
+	socket.on('join_room', roomId => {
+		console.log('join_room', roomId);
+		socket.join(roomId);
 	});
+
+	socket.on('send_message', data => {
+		socket.to(data?.roomId).emit('receive_message', data.message);
+	});
+
+	// socket.on('disconnect', () => {
+	// 	console.log('User disconnected');
+	// });
 });
 
 server.listen(port, '0.0.0.0', () => {

@@ -1,170 +1,180 @@
 import { db } from '@/db';
 import { BadRequestException } from '@/exceptions/BadRequestException';
 import { NotFoundException } from '@/exceptions/NotFoundException';
-import { socketIO } from '@/lib/socket';
-import { chatTable } from '@/models/chatTable';
+import {
+	chatMembersTable,
+	chatMessagesTable,
+	chatsTable,
+} from '@/models/chatTable';
 import { usersTable } from '@/models/usersTable';
-import { and, desc, eq, or, sql } from 'drizzle-orm';
-import postgres from 'postgres';
+import { and, count, desc, eq, ne } from 'drizzle-orm';
+import { isChatExists, isRecipientAlreadyJoined } from './chat.helper';
 
 export const getChats = async (
 	userId: number,
 	page: number,
 	perPage: number,
 ) => {
-	const socket = socketIO();
-
-	const totalChatCount = await db
-		.select({
-			count: sql<number>`COUNT(DISTINCT CONCAT(${chatTable.user_id}, '-', ${chatTable.recipient_id}))`,
+	const [chatRows] = await db
+		.selectDistinctOn([chatsTable.id], {
+			count: count(chatsTable.id),
 		})
-		.from(chatTable)
-		.where(eq(chatTable.user_id, userId))
-		.then(result => result[0]?.count || 0);
+		.from(chatsTable)
+		.where(ne(chatMembersTable.user_id, userId))
+		.innerJoin(
+			chatMembersTable,
+			eq(chatMembersTable.chat_id, chatsTable.id),
+		)
+		.innerJoin(usersTable, eq(usersTable.id, chatMembersTable.user_id))
+		.innerJoin(
+			chatMessagesTable,
+			eq(chatMessagesTable.sender_id, usersTable.id),
+		)
+		.groupBy(chatsTable.id);
 
 	const chats = await db
-		.selectDistinctOn([chatTable.user_id, chatTable.recipient_id], {
-			id: chatTable.id,
+		.selectDistinctOn([chatsTable.id], {
+			id: chatsTable.id,
+			avatar: usersTable.avatar,
+			userId: usersTable.id,
 			username: usersTable.username,
+			message: chatMessagesTable.content,
 			name: usersTable.name,
-			message: chatTable.message,
-			roomId: sql<string>`CONCAT(${chatTable.user_id},${chatTable.recipient_id})`,
-			created_at: chatTable.created_at,
-			updated_at: chatTable.updated_at,
+			// created_at: chatsTable.id,
+			// updated_at: chatsTable.id,
 		})
-		.from(chatTable)
+		.from(chatsTable)
 		.innerJoin(
-			usersTable,
-			or(
-				eq(usersTable.id, chatTable.user_id),
-				eq(usersTable.id, chatTable.recipient_id),
+			chatMembersTable,
+			and(
+				eq(chatMembersTable.chat_id, chatsTable.id),
+				ne(chatMembersTable.user_id, userId),
 			),
 		)
-		.where(
-			or(
-				eq(chatTable.user_id, userId),
-				eq(chatTable.recipient_id, userId),
-			),
+		.innerJoin(usersTable, eq(usersTable.id, chatMembersTable.user_id))
+		.innerJoin(
+			chatMessagesTable,
+			eq(chatMessagesTable.chat_id, chatsTable.id),
 		)
-		.orderBy(
-			desc(chatTable.user_id),
-			desc(chatTable.recipient_id),
-			desc(chatTable.created_at),
-		)
-		.limit(perPage)
-		.offset((page - 1) * perPage);
+		.orderBy(desc(chatsTable.id), desc(chatMessagesTable.created_at))
+		.offset((page - 1) * perPage)
+		.limit(perPage);
 
-	if (chats.length === 0) throw new NotFoundException('No chats yet');
+	const totalCount = chatRows.count;
 
 	const itemsTaken = page * perPage;
-	const remaining = Number(totalChatCount) - itemsTaken;
-
-	socket?.on('join_room', data => {
-		console.log('join_data', data);
-
-		socket?.socketsJoin(data);
-	});
+	const remaining = totalCount - itemsTaken;
 
 	return {
 		chats,
-		total_items: Number(totalChatCount),
+		total_items: totalCount,
 		remaining_items: Math.max(0, remaining),
 	};
 };
 
-export const getChatConversation = async (
+export const getChatMessages = async (
 	userId: number,
-	friendId: number,
+	chatId: number,
 	page: number,
 	perPage: number,
 ) => {
-	// const totalChatCount = await db
-	// 	.select({
-	// 		count: sql<number>`COUNT(DISTINCT CONCAT(${chatTable.user_id}, '-', ${chatTable.recipient_id}))`,
-	// 	})
-	// 	.from(chatTable)
-	// 	.where(eq(chatTable.user_id, userId))
-	// 	.then(result => result[0]?.count || 0);
+	const [chatRows] = await db
+		.select({
+			total: count(chatMessagesTable.id),
+		})
+		.from(chatMessagesTable)
+		.where(eq(chatMessagesTable.chat_id, chatId));
 
-	const response = await db
-		.select()
-		.from(chatTable)
-		.where(
-			or(
-				and(
-					eq(chatTable.user_id, userId),
-					eq(chatTable.recipient_id, friendId),
-				),
-				and(
-					eq(chatTable.recipient_id, userId),
-					eq(chatTable.user_id, friendId),
-				),
-			),
-		);
+	const chats = await db
+		.select({
+			id: chatMessagesTable.id,
+			content: chatMessagesTable.content,
+			is_own: eq(chatMessagesTable.sender_id, userId),
+			created_at: chatMessagesTable.created_at,
+			updated_at: chatMessagesTable.updated_at,
+		})
+		.from(chatMessagesTable)
+		.where(eq(chatMessagesTable.chat_id, chatId))
+		.orderBy(desc(chatMessagesTable.created_at))
+		.offset((page - 1) * perPage)
+		.limit(perPage);
 
-	return response;
+	if (chats.length === 0) throw new NotFoundException('No messages.');
 
-	// const chats = await db
-	// 	.selectDistinctOn([chatTable.user_id, chatTable.recipient_id], {
-	// 		id: chatTable.id,
-	// 		username: usersTable.username,
-	// 		name: usersTable.name,
-	// 		message: chatTable.message,
-	// 		created_at: chatTable.created_at,
-	// 		updated_at: chatTable.updated_at,
-	// 	})
-	// 	.from(chatTable)
-	// 	.innerJoin(usersTable, eq(usersTable.id, chatTable.user_id))
-	// 	.where(eq(chatTable.user_id, userId))
-	// 	.orderBy(
-	// 		desc(chatTable.user_id),
-	// 		desc(chatTable.recipient_id),
-	// 		desc(chatTable.created_at),
-	// 	)
-	// 	.limit(perPage)
-	// 	.offset((page - 1) * perPage);
+	const totalCount = chatRows.total;
 
-	// const itemsTaken = page * perPage;
-	// const remaining = Number(totalChatCount) - itemsTaken;
+	const itemsTaken = page * perPage;
+	const remaining = totalCount - itemsTaken;
 
-	// return {
-	// 	chats,
-	// 	total_items: Number(totalChatCount),
-	// 	remaining_items: Math.max(0, remaining),
-	// };
+	return {
+		chats,
+		total_items: totalCount,
+		remaining_items: Math.max(0, remaining),
+	};
 };
 
 export const sendMessage = async (
-	userId: number,
-	recipientId: number,
-	message: string,
-): Promise<{ messageId: number } | undefined> => {
-	try {
-		if (!userId || !recipientId)
-			throw new NotFoundException('Target not found');
+	senderId: number,
+	content: string,
+	chatId?: number,
+	recipientId?: number,
+) => {
+	if (!chatId && !recipientId)
+		throw new NotFoundException('Recipient not found');
 
-		if (userId == recipientId)
-			throw new BadRequestException(
-				'You cannot send a message to yourself',
-			);
+	if (senderId == chatId || senderId === recipientId)
+		throw new BadRequestException('You cannot send a message to yourself');
 
-		const [response] = await db
-			.insert(chatTable)
-			.values({
-				user_id: userId,
-				recipient_id: recipientId,
-				message,
-			})
-			.returning({ messageId: chatTable.id });
+	if (!chatId && recipientId) {
+		const isJoined = await isRecipientAlreadyJoined(recipientId);
+
+		if (isJoined)
+			throw new BadRequestException('chat_id is expected but undefined');
+
+		const response = await db.transaction(async tx => {
+			const [chatResponse] = await tx
+				.insert(chatsTable)
+				.values({})
+				.returning({ chat_id: chatsTable.id });
+
+			const chat_id = chatResponse.chat_id;
+
+			await tx.insert(chatMembersTable).values({
+				user_id: senderId,
+				chat_id,
+			});
+
+			await tx.insert(chatMembersTable).values({
+				user_id: recipientId,
+				chat_id,
+			});
+
+			const [messageResponse] = await tx
+				.insert(chatMessagesTable)
+				.values({
+					chat_id,
+					sender_id: senderId,
+					content,
+				})
+				.returning({ chatId: chatsTable.id });
+
+			return messageResponse;
+		});
 
 		return response;
-	} catch (error) {
-		if (error instanceof postgres.PostgresError) {
-			if (error.code === '23503') {
-				throw new NotFoundException('Recipient not found.');
-			}
-		}
-
-		throw error;
 	}
+
+	const exists = await isChatExists(chatId);
+	if (!exists) throw new NotFoundException("Chat doesn't exist");
+
+	const [response] = await db
+		.insert(chatMessagesTable)
+		.values({
+			chat_id: chatId,
+			sender_id: senderId,
+			content,
+		})
+		.returning({ chatId: chatsTable.id });
+
+	return response;
 };

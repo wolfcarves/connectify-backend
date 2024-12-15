@@ -1,21 +1,50 @@
-import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+	boolean,
+	integer,
+	pgTable,
+	serial,
+	timestamp,
+	varchar,
+	text,
+} from 'drizzle-orm/pg-core';
 import { usersTable } from './usersTable';
 
-export const chatTable = pgTable('chats', {
-	id: serial('id'),
+export const chatsTable = pgTable('chats', {
+	id: serial('id').primaryKey(),
+	name: varchar('name', { length: 255 }),
+	is_group: boolean('is_group').default(false),
+	created_at: timestamp('created_at').defaultNow(),
+	updated_at: timestamp('updated_at').defaultNow(),
+});
+
+export const chatMembersTable = pgTable('chat_members', {
+	id: serial('id').primaryKey(),
 	user_id: integer('user_id')
 		.references(() => usersTable.id, {
 			onDelete: 'cascade',
 			onUpdate: 'cascade',
 		})
 		.notNull(),
-	recipient_id: integer('recipient_id')
-		.references(() => usersTable.id, {
+	chat_id: integer('chat_id')
+		.references(() => chatsTable.id, {
 			onDelete: 'cascade',
 			onUpdate: 'cascade',
 		})
 		.notNull(),
-	message: text('message').notNull(),
+	joined_at: timestamp('joined_at').defaultNow(),
+});
+
+export const chatMessagesTable = pgTable('chat_messages', {
+	id: serial('id').primaryKey(),
+	chat_id: integer('chat_id').references(() => chatsTable.id, {
+		onDelete: 'cascade',
+		onUpdate: 'cascade',
+	}),
+	sender_id: integer('sender_id').references(() => usersTable.id, {
+		onDelete: 'cascade',
+		onUpdate: 'cascade',
+	}),
+	content: text('content'),
 	created_at: timestamp('created_at').defaultNow(),
 	updated_at: timestamp('updated_at').defaultNow(),
 });
