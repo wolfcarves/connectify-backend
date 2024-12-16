@@ -5,6 +5,11 @@ import { requireAuth } from '@/middleware/auth.middleware';
 
 const ChatRouter = express.Router();
 
+chatDocumentation.createChatDocs();
+ChatRouter.post('/create/:recipientId', requireAuth, chatController.createChat);
+
+ChatRouter.get('/:recipientId', requireAuth, chatController.getChat);
+
 chatDocumentation.getChatsDocs();
 ChatRouter.get('/', requireAuth, chatController.getChats);
 
@@ -12,6 +17,6 @@ chatDocumentation.getChatMessagesDocs();
 ChatRouter.get('/:chatId', requireAuth, chatController.getChatMessages);
 
 chatDocumentation.sendMessageDocs();
-ChatRouter.post('/send', requireAuth, chatController.sendMessage);
+ChatRouter.post('/send/:chatId', requireAuth, chatController.sendMessage);
 
 export default ChatRouter;

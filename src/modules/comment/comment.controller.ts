@@ -46,22 +46,21 @@ export const getComments = asyncHandler(
 		const page = Number(req.query.page) || 1;
 		const perPage = Number(req.query.per_page) || COMMENTS_PER_PAGE;
 
-		const { comments, total, remaining } = await commentService.getComments(
-			{
+		const { comments, total_items, remaining_items } =
+			await commentService.getComments({
 				userId,
 				postId,
 				commentId,
 				page,
 				perPage,
-			},
-		);
+			});
 
 		res.status(200).json({
 			data: comments,
 			pagination: {
 				current_page: page,
-				total_items: total,
-				remaining_items: remaining,
+				total_items,
+				remaining_items,
 			},
 		});
 	},

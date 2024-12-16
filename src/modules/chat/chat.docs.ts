@@ -1,6 +1,7 @@
 import { registry } from '@/lib/zodToOpenAPI';
 import {
 	badRequestErrorResponse,
+	forbiddenErrorResponse,
 	notFoundErrorResponse,
 	serverErrorResponse,
 	unauthorizedErrorResponse,
@@ -14,6 +15,40 @@ import {
 	chatSendMessageResponseSchema,
 } from './chat.schema';
 import { paginationResponseSchema } from '@/schema/responseSchema';
+
+export const createChatDocs = () => {
+	registry.registerPath({
+		tags: ['Chat'],
+		method: 'post',
+		path: '/api/v1/chats/create/{recipientId}',
+		operationId: 'postCreateChat',
+		summary: 'Create Chat',
+		request: {
+			params: z.object({
+				recipientId: z.number().optional(),
+			}),
+		},
+		responses: {
+			200: {
+				description: 'OK',
+				content: {
+					'application/json': {
+						schema: z.object({
+							data: z.object({
+								chat_id: z.number(),
+							}),
+						}),
+					},
+				},
+			},
+			...forbiddenErrorResponse,
+			...badRequestErrorResponse,
+			...unauthorizedErrorResponse,
+			...notFoundErrorResponse,
+			...serverErrorResponse,
+		},
+	});
+};
 
 export const getChatsDocs = () => {
 	registry.registerPath({
@@ -84,13 +119,12 @@ export const sendMessageDocs = () => {
 	registry.registerPath({
 		tags: ['Chat'],
 		method: 'post',
-		path: '/api/v1/chats/send',
+		path: '/api/v1/chats/send/{chatId}',
 		operationId: 'postChatSendMessage',
 		summary: 'Send Chat Message',
 		request: {
-			query: z.object({
-				recipientId: z.number().optional(),
-				chatId: z.number().optional(),
+			params: z.object({
+				chatId: z.number(),
 			}),
 			body: {
 				content: {

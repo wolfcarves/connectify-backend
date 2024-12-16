@@ -1,6 +1,7 @@
 import {
 	badRequestErrorSchema,
 	conflictErrorSchema,
+	forbiddenErrorSchema,
 	serverErrorSchema,
 	unauthorizedErrorSchema,
 	validationErrorSchema,
@@ -34,6 +35,17 @@ export const unauthorizedErrorResponse = {
 		content: {
 			'application/json': {
 				schema: unauthorizedErrorSchema,
+			},
+		},
+	},
+};
+
+export const forbiddenErrorResponse = {
+	401: {
+		description: 'Forbidden',
+		content: {
+			'application/json': {
+				schema: forbiddenErrorSchema,
 			},
 		},
 	},

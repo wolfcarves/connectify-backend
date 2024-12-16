@@ -1,8 +1,39 @@
 import type { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import * as chatService from './chat.service';
-import type { Body, QueryParams, RouteAndQueryParams } from '@/types/request';
-import { chatSendMessageInputSchema } from './chat.schema';
+import type {
+	QueryParams,
+	RouteAndQueryParams,
+	RouteParams,
+} from '@/types/request';
+
+export const createChat = asyncHandler(
+	async (req: RouteParams<{ recipientId: string }>, res: Response) => {
+		const userId = res.locals.user!.id;
+		const recipientId = Number(req.params.recipientId);
+
+		const { chat_id } = await chatService.createChat(userId, recipientId);
+
+		res.status(201).json({
+			data: {
+				chat_id,
+			},
+		});
+	},
+);
+
+export const getChat = asyncHandler(
+	async (req: RouteParams<{ recipientId: string }>, res: Response) => {
+		const userId = res.locals.user!.id;
+		const recipientId = Number(req.params.recipientId);
+
+		const chat = await chatService.getChat(userId, recipientId);
+
+		res.status(201).json({
+			data: chat,
+		});
+	},
+);
 
 export const getChats = asyncHandler(
 	async (
@@ -58,24 +89,17 @@ export const getChatMessages = asyncHandler(
 
 export const sendMessage = asyncHandler(
 	async (
-		req: Request<
-			never,
-			never,
-			{ content: string },
-			{ chatId?: string; recipientId?: string }
-		>,
+		req: Request<{ chatId: string }, never, { content: string }, never>,
 		res: Response,
 	) => {
 		const senderId = res.locals.user!.id;
-		const chatId = Number(req.query.chatId) || undefined;
-		const recipientId = Number(req.query.recipientId) || undefined;
+		const chatId = Number(req.params.chatId);
 		const content = req.body.content;
 
 		const response = await chatService.sendMessage(
 			senderId,
-			content,
 			chatId,
-			recipientId,
+			content,
 		);
 
 		res.status(201).json({

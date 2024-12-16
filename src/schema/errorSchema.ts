@@ -57,6 +57,16 @@ export const unauthorizedErrorSchema = registry.register(
 	}),
 );
 
+export const forbiddenErrorSchema = registry.register(
+	'ForbiddenError',
+	z.object({
+		error: z.object({
+			message: z.string().openapi({ example: 'Forbidden' }),
+			statusCode: z.number().openapi({ example: 403 }),
+		}),
+	}),
+);
+
 export const serverErrorSchema = registry.register(
 	'ServerInternalError',
 	z.object({

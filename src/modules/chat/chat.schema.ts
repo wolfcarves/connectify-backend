@@ -5,12 +5,10 @@ export const chatSchema = registry.register(
 	'Chat',
 	z.object({
 		id: z.number(),
+		group_name: z.string().nullable(),
 		avatar: z.string(),
-		userId: z.number(),
 		username: z.string(),
 		name: z.string(),
-		message: z.string(),
-		roomId: z.string(),
 		created_at: z.string(),
 		updated_at: z.string(),
 	}),

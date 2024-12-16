@@ -132,7 +132,7 @@ export const getComments = async ({
 
 	return {
 		comments,
-		total: totalCount,
-		remaining: Math.max(0, remaining),
+		total_items: totalCount,
+		remaining_items: Math.max(0, remaining),
 	};
 };
