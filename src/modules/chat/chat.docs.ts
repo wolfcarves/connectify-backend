@@ -25,7 +25,7 @@ export const createChatDocs = () => {
 		summary: 'Create Chat',
 		request: {
 			params: z.object({
-				recipientId: z.number().optional(),
+				recipientId: z.number(),
 			}),
 		},
 		responses: {

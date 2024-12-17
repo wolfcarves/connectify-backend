@@ -36,11 +36,6 @@ cloudinary.v2.config(cloudinaryOptions);
 
 app.use(validateSession);
 
-app.use((request: Request, response: Response, next) => {
-	request.io = io;
-	next();
-});
-
 renderRoutes(app);
 writeDocumentation(app);
 renderDocs(app);

@@ -15,7 +15,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 		req.body,
 	);
 
-	const user = await userService.getUser({ username });
+	const user = await userService.getUser({ username, withPassword: true });
 
 	const error: ZodError['validationErrors'] = [
 		{
@@ -63,9 +63,11 @@ export const signUpUser = asyncHandler(
 
 		const usernameResults = await userService.getUser({
 			username: parsedData.username,
+			withPassword: false,
 		});
 		const emailResults = await userService.getUser({
 			email: parsedData.email,
+			withPassword: false,
 		});
 
 		const errors: ZodError['validationErrors'] = [];
@@ -110,6 +112,7 @@ export const getCurrentSession = asyncHandler(
 
 		const session = await userService.getUser({
 			userId: userId!,
+			withPassword: false,
 		});
 
 		res.status(200).json({

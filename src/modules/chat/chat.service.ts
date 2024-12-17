@@ -67,10 +67,13 @@ export const getChat = async (userId: number, recipientId: number) => {
 	const [chat] = await db
 		.select({
 			id: chatsTable.id,
-			group_name: chatsTable.name,
+			name: sql`
+				CASE
+					WHEN ${chatsTable.name} IS NOT NULL
+					THEN ${chatsTable.name}
+					ELSE ${usersTable.name}
+				END`,
 			avatar: usersTable.avatar,
-			username: usersTable.username,
-			name: usersTable.name,
 			created_at: chatsTable.created_at,
 			updated_at: chatsTable.updated_at,
 		})
@@ -98,58 +101,62 @@ export const getChats = async (
 		.from(chatsTable)
 		.innerJoin(
 			chatMembersTable,
-			and(
-				eq(chatMembersTable.user_id, userId),
-				eq(chatMembersTable.chat_id, chatsTable.id),
-			),
+			eq(chatMembersTable.chat_id, chatsTable.id),
 		)
-		.innerJoin(usersTable, eq(usersTable.id, chatMembersTable.user_id))
-		.where(eq(chatMembersTable.chat_id, chatsTable.id))
+		.where(eq(chatMembersTable.user_id, userId))
 		.groupBy(chatsTable.id);
 
 	const _chatIds = chatIds.map(c => c.id);
 
 	const chats = await db
-		.select({
+		.selectDistinctOn([chatsTable.id], {
 			id: chatsTable.id,
-			group_name: sql`
+			avatar: usersTable.avatar,
+			name: sql`
 				CASE
 					WHEN ${chatsTable.name} IS NOT NULL
 					THEN ${chatsTable.name}
 					ELSE ${usersTable.name}
 				END`,
-			avatar: usersTable.avatar,
-			username: usersTable.username,
-			name: usersTable.name,
-			latest_message: chatMessagesTable.content,
+			latest_message: sql`
+					CASE
+						WHEN ${chatMessagesTable.sender_id} = ${userId}
+						THEN CONCAT('You: ', ${chatMessagesTable.content})
+						ELSE ${chatMessagesTable.content}
+					END`,
 			latest_message_at: chatMessagesTable.created_at,
 		})
 		.from(chatsTable)
-		.innerJoin(chatMembersTable, ne(chatMembersTable.user_id, userId))
+		.innerJoin(
+			chatMembersTable,
+			eq(chatMembersTable.chat_id, chatsTable.id),
+		)
 		.innerJoin(usersTable, eq(usersTable.id, chatMembersTable.user_id))
 		.innerJoin(
 			chatMessagesTable,
-			and(
-				eq(chatMessagesTable.chat_id, chatsTable.id),
-				eq(
-					chatMessagesTable.created_at,
-					db
-						.select({ latest: max(chatMessagesTable.created_at) })
-						.from(chatMessagesTable)
-						.where(eq(chatMessagesTable.chat_id, chatsTable.id)),
-				),
-			),
+			eq(chatMessagesTable.chat_id, chatsTable.id),
 		)
 		.where(inArray(chatsTable.id, _chatIds))
+		.orderBy(chatsTable.id, chatsTable.created_at)
 		.limit(perPage)
-		.offset((page - 1) * perPage)
-		.orderBy(chatsTable.created_at);
+		.offset((page - 1) * perPage);
 
 	if (chats.length === 0) throw new NotFoundException('No chats');
 
-	const totalCount = chatIds?.[0].count;
+	const totalCount = (
+		await db
+			.select({
+				count: count(chatsTable.id),
+			})
+			.from(chatsTable)
+			.innerJoin(
+				chatMembersTable,
+				eq(chatMembersTable.chat_id, chatsTable.id),
+			)
+			.where(eq(chatMembersTable.user_id, userId))
+	)[0].count;
 
-	const itemsTaken = page * perPage;
+	const itemsTaken = chats.length;
 	const remaining = totalCount - itemsTaken;
 
 	return {
@@ -164,41 +171,7 @@ export const getChatMessages = async (
 	chatId: number,
 	page: number,
 	perPage: number,
-) => {
-	const [chatRows] = await db
-		.select({
-			total: count(chatMessagesTable.id),
-		})
-		.from(chatMessagesTable)
-		.where(eq(chatMessagesTable.chat_id, chatId));
-
-	const chats = await db
-		.select({
-			id: chatMessagesTable.id,
-			content: chatMessagesTable.content,
-			is_own: eq(chatMessagesTable.sender_id, userId),
-			created_at: chatMessagesTable.created_at,
-			updated_at: chatMessagesTable.updated_at,
-		})
-		.from(chatMessagesTable)
-		.where(eq(chatMessagesTable.chat_id, chatId))
-		.orderBy(desc(chatMessagesTable.created_at))
-		.offset((page - 1) * perPage)
-		.limit(perPage);
-
-	if (chats.length === 0) throw new NotFoundException('No messages.');
-
-	const totalCount = chatRows.total;
-
-	const itemsTaken = page * perPage;
-	const remaining = totalCount - itemsTaken;
-
-	return {
-		chats,
-		total_items: totalCount,
-		remaining_items: Math.max(0, remaining),
-	};
-};
+) => {};
 
 export const sendMessage = async (
 	senderId: number,

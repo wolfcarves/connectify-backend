@@ -29,7 +29,7 @@ export const renderRoutes = (app: Express) => {
 	apiRouter.use('/health', HealthRouter);
 	apiRouter.use('/like', LikeRouter);
 	apiRouter.use('/post', PostRouter);
-	apiRouter.use('/user', UserRouter);
+	apiRouter.use('/users', UserRouter);
 
 	apiRouter.get('/health', (req: Request, res: Response) => {
 		res.status(200).send({

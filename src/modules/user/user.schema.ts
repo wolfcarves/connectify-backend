@@ -10,6 +10,9 @@ export const userSchema = registry.register(
 		name: z.string(),
 		username: z.string(),
 		friends_count: z.number(),
+		is_friend: z.boolean(),
+		has_request: z.boolean(),
+		request_from: z.enum(['us', 'them']).nullish(),
 		created_at: z.string(),
 		updated_at: z.string(),
 	}),
@@ -17,13 +20,3 @@ export const userSchema = registry.register(
 
 export type UserSchema = z.infer<typeof userSchema>;
 
-export const getUserProfileResponseSchema = registry.register(
-	'GetUserProfileResponseSchema',
-	z.object({
-		data: userSchema.extend({
-			is_friend: z.boolean(),
-			has_request: z.boolean(),
-			request_from: z.enum(['us', 'them']).nullish(),
-		}),
-	}),
-);

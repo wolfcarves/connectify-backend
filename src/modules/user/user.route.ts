@@ -7,6 +7,12 @@ import { requireAuth } from '@/middleware/auth.middleware';
 const upload = multer({ storage: multer.diskStorage({}) });
 const UserRouter = express.Router();
 
+UserDocumentation.getUserProfileDocs();
+UserRouter.get('/profile', requireAuth, UserController.getUserProfile);
+
+UserDocumentation.getUsersDocs();
+UserRouter.get('/', requireAuth, UserController.getUsers);
+
 UserDocumentation.uploadUserProfileImageDocs();
 UserRouter.post(
 	'/profile/avatar',
@@ -21,8 +27,5 @@ UserRouter.delete(
 	requireAuth,
 	UserController.deleteUserProfileImage,
 );
-
-UserDocumentation.getUserProfileDocs();
-UserRouter.get('/profile', requireAuth, UserController.getUserProfile);
 
 export default UserRouter;

@@ -1,36 +1,34 @@
 import cloudinary from 'cloudinary';
 import { BadRequestException } from '@/exceptions/BadRequestException';
 import { db } from '@/db';
-import { eq, or, getTableColumns, sql } from 'drizzle-orm';
+import { eq, or, getTableColumns, sql, ilike, count } from 'drizzle-orm';
 import { env } from '@/config/env';
 import { usersTable } from '@/models/usersTable';
 import { avatarTable } from '@/models/avatarTable';
 import { friendshipsTable } from '@/models/friendsTable';
+import { NotFoundException } from '@/exceptions/NotFoundException';
 
 export const getUser = async ({
 	userId,
 	username,
 	email,
+	withPassword,
 }: {
 	userId?: number;
 	username?: string;
 	email?: string;
+	withPassword: boolean;
 }) => {
+	const { city, is_bot, ...columns } = getTableColumns(usersTable);
+
 	const user = (
 		await db
 			.select({
-				id: usersTable.id,
-				avatar: usersTable.avatar,
-				email: usersTable.email,
-				name: usersTable.name,
-				username: usersTable.username,
-				city: usersTable.city,
-				password: usersTable.password,
+				...columns,
+				...(withPassword ? { password: usersTable.password } : {}),
 				friends_count: sql<number>`COUNT(friendships.id)`.as(
 					'friends_count',
 				),
-				created_at: usersTable.created_at,
-				updated_at: usersTable.updated_at,
 			})
 			.from(usersTable)
 			.where(
@@ -54,19 +52,43 @@ export const getUser = async ({
 	return user;
 };
 
-export const getAllUsers = async ({
-	limit = 100,
-	offset = 0,
-}: { offset?: number; limit?: number } = {}) => {
-	const { password, ...columns } = getTableColumns(usersTable);
+export const getUsers = async (
+	search: string,
+	page: number,
+	perPage: number,
+) => {
+	const { password, city, is_bot, ...columns } = getTableColumns(usersTable);
 
-	const user = await db
+	const totalCount = await db
+		.select({ count: sql`count(*)`.mapWith(Number) })
+		.from(usersTable)
+		.then(result => result[0].count);
+
+	const users = await db
 		.select(columns)
 		.from(usersTable)
-		.offset(offset)
-		.limit(limit);
+		.where(
+			search
+				? or(
+						ilike(usersTable.name, `%${search}%`),
+						ilike(usersTable.username, `%${search}%`),
+					)
+				: undefined,
+		)
+		.groupBy(usersTable.id)
+		.offset((page - 1) * perPage)
+		.limit(perPage);
 
-	return user;
+	if (users.length === 0) throw new NotFoundException('No user found');
+
+	const itemsTaken = users.length;
+	const remaining = totalCount - itemsTaken;
+
+	return {
+		users,
+		total_items: totalCount,
+		remaining_items: Math.max(0, remaining),
+	};
 };
 
 export const uploadUserProfileImage = async (

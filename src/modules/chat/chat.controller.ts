@@ -29,7 +29,7 @@ export const getChat = asyncHandler(
 
 		const chat = await chatService.getChat(userId, recipientId);
 
-		res.status(201).json({
+		res.status(200).json({
 			data: chat,
 		});
 	},
@@ -73,16 +73,16 @@ export const getChatMessages = asyncHandler(
 		const page = Number(req.query.page) || 1;
 		const perPage = Number(req.query.per_page) || 10;
 
-		const { chats, total_items, remaining_items } =
-			await chatService.getChatMessages(userId, chatId, page, perPage);
+		// const { chats, total_items, remaining_items } =
+		// 	await chatService.getChatMessages(userId, chatId, page, perPage);
 
 		res.status(200).json({
-			data: chats,
-			pagination: {
-				current_page: page,
-				total_items,
-				remaining_items,
-			},
+			// data: chats,
+			// pagination: {
+			// 	current_page: page,
+			// 	total_items,
+			// 	remaining_items,
+			// },
 		});
 	},
 );

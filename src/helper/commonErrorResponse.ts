@@ -2,6 +2,7 @@ import {
 	badRequestErrorSchema,
 	conflictErrorSchema,
 	forbiddenErrorSchema,
+	notFoundErrorSchema,
 	serverErrorSchema,
 	unauthorizedErrorSchema,
 	validationErrorSchema,
@@ -56,7 +57,7 @@ export const notFoundErrorResponse = {
 		description: 'Not Found',
 		content: {
 			'application/json': {
-				schema: unauthorizedErrorSchema,
+				schema: notFoundErrorSchema,
 			},
 		},
 	},
