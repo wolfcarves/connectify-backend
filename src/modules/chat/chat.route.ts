@@ -8,7 +8,8 @@ const ChatRouter = express.Router();
 chatDocumentation.createChatDocs();
 ChatRouter.post('/create/:recipientId', requireAuth, chatController.createChat);
 
-ChatRouter.get('/:recipientId', requireAuth, chatController.getChat);
+chatDocumentation.getChatDocs();
+ChatRouter.get('/:chatId', requireAuth, chatController.getChat);
 
 chatDocumentation.getChatsDocs();
 ChatRouter.get('/', requireAuth, chatController.getChats);

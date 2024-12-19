@@ -1,7 +1,7 @@
 import cloudinary from 'cloudinary';
 import { BadRequestException } from '@/exceptions/BadRequestException';
 import { db } from '@/db';
-import { eq, or, getTableColumns, sql, ilike, count } from 'drizzle-orm';
+import { eq, or, getTableColumns, sql, ilike, and, ne } from 'drizzle-orm';
 import { env } from '@/config/env';
 import { usersTable } from '@/models/usersTable';
 import { avatarTable } from '@/models/avatarTable';
@@ -53,6 +53,7 @@ export const getUser = async ({
 };
 
 export const getUsers = async (
+	userId: number,
 	search: string,
 	page: number,
 	perPage: number,
@@ -68,12 +69,15 @@ export const getUsers = async (
 		.select(columns)
 		.from(usersTable)
 		.where(
-			search
-				? or(
-						ilike(usersTable.name, `%${search}%`),
-						ilike(usersTable.username, `%${search}%`),
-					)
-				: undefined,
+			and(
+				search
+					? or(
+							ilike(usersTable.name, `%${search}%`),
+							ilike(usersTable.username, `%${search}%`),
+						)
+					: undefined,
+				ne(usersTable.id, userId),
+			),
 		)
 		.groupBy(usersTable.id)
 		.offset((page - 1) * perPage)

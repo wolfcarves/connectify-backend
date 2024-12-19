@@ -42,7 +42,6 @@ export const createChatDocs = () => {
 				},
 			},
 			...forbiddenErrorResponse,
-			...badRequestErrorResponse,
 			...unauthorizedErrorResponse,
 			...notFoundErrorResponse,
 			...serverErrorResponse,
@@ -83,11 +82,44 @@ export const getChatsDocs = () => {
 	});
 };
 
-export const getChatMessagesDocs = () => {
+export const getChatDocs = () => {
 	registry.registerPath({
 		tags: ['Chat'],
 		method: 'get',
 		path: '/api/v1/chats/{chatId}',
+		operationId: 'getChat',
+		summary: 'Get Chat Details',
+		request: {
+			params: z.object({
+				chatId: z.number(),
+			}),
+		},
+		responses: {
+			200: {
+				description: 'OK',
+				content: {
+					'application/json': {
+						schema: z.object({
+							data: chatSchema.omit({
+								latest_message: true,
+								latest_message_at: true,
+							}),
+						}),
+					},
+				},
+			},
+			...unauthorizedErrorResponse,
+			...notFoundErrorResponse,
+			...serverErrorResponse,
+		},
+	});
+};
+
+export const getChatMessagesDocs = () => {
+	registry.registerPath({
+		tags: ['Chat'],
+		method: 'get',
+		path: '/api/v1/chats/messages/{chatId}',
 		operationId: 'getChatMessages',
 		summary: 'Get Chat Messages',
 		request: {

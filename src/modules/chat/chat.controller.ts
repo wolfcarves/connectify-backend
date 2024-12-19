@@ -23,11 +23,11 @@ export const createChat = asyncHandler(
 );
 
 export const getChat = asyncHandler(
-	async (req: RouteParams<{ recipientId: string }>, res: Response) => {
+	async (req: RouteParams<{ chatId: string }>, res: Response) => {
 		const userId = res.locals.user!.id;
-		const recipientId = Number(req.params.recipientId);
+		const chatId = Number(req.params.chatId);
 
-		const chat = await chatService.getChat(userId, recipientId);
+		const chat = await chatService.getChat(userId, chatId);
 
 		res.status(200).json({
 			data: chat,

@@ -17,7 +17,10 @@ export const getUserProfile = asyncHandler(
 			userId: req.query.userId ? parseInt(req.query.userId) : undefined,
 		};
 
-		const result = await userService.getUser({...query, withPassword: true});
+		const result = await userService.getUser({
+			...query,
+			withPassword: true,
+		});
 
 		const { is_friend, has_request, request_from } =
 			await checkFriendStatus(user?.id, result.id);
@@ -39,9 +42,11 @@ export const getUsers = asyncHandler(
 		req: QueryParams<{ search: string; page: string; per_page: string }>,
 		res: Response,
 	) => {
+		const userId = res.locals.user?.id;
 		const query = req.query;
 
 		const { users, ...pagination } = await userService.getUsers(
+			userId,
 			query.search,
 			Number(query.page || 1),
 			Number(query.per_page || 10),

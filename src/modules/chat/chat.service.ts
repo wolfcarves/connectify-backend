@@ -9,20 +9,23 @@ import {
 	chatsTable,
 } from '@/models/chatTable';
 import { usersTable } from '@/models/usersTable';
-import { and, count, desc, eq, inArray, max, ne, sql } from 'drizzle-orm';
+import { aliasedTable, and, count, eq, inArray, ne, sql } from 'drizzle-orm';
 import { isChatExists, getChatId } from './chat.helper';
 
 export const createChat = async (userId: number, recipientId: number) => {
 	try {
-		const isJoinedAlready = !!(await getChatId(userId, recipientId));
+		const chatId = await getChatId(userId, recipientId);
 
 		if (userId === recipientId)
 			throw new ForbiddenException(
-				'You cannot create a ch	at with yourself',
+				'You cannot create a chat with yourself',
 			);
 
-		if (isJoinedAlready)
-			throw new BadRequestException('Chat already created');
+		if (chatId) {
+			return {
+				chat_id: chatId,
+			};
+		}
 
 		const response = await db.transaction(async tx => {
 			const [chatResponse] = await tx
@@ -58,15 +61,14 @@ export const createChat = async (userId: number, recipientId: number) => {
 	}
 };
 
-export const getChat = async (userId: number, recipientId: number) => {
-	const isChatExists = !!(await getChatId(userId, recipientId));
+export const getChat = async (userId: number, chatId: number) => {
+	console.log('chatId', chatId);
 
-	if (!isChatExists || userId === recipientId)
-		throw new NotFoundException('Chat not found');
+	const chatMembersTable2 = aliasedTable(chatMembersTable, 'cm2');
 
-	const [chat] = await db
+	const chat = await db
 		.select({
-			id: chatsTable.id,
+			id: chatMembersTable.user_id,
 			name: sql`
 				CASE
 					WHEN ${chatsTable.name} IS NOT NULL
@@ -77,13 +79,22 @@ export const getChat = async (userId: number, recipientId: number) => {
 			created_at: chatsTable.created_at,
 			updated_at: chatsTable.updated_at,
 		})
-		.from(chatsTable)
-		.where(eq(chatMembersTable.user_id, recipientId))
+		.from(chatMembersTable)
 		.innerJoin(
-			chatMembersTable,
-			eq(chatMembersTable.chat_id, chatsTable.id),
+			chatMembersTable2,
+			eq(chatMembersTable2.chat_id, chatMembersTable.chat_id),
 		)
-		.innerJoin(usersTable, eq(chatMembersTable.user_id, usersTable.id));
+		.innerJoin(usersTable, eq(usersTable.id, chatMembersTable.user_id))
+		.innerJoin(chatsTable, eq(chatsTable.id, chatMembersTable.chat_id))
+		.where(
+			and(
+				ne(chatMembersTable.user_id, userId),
+				eq(chatMembersTable2.user_id, userId),
+				eq(chatMembersTable2.chat_id, chatId),
+			),
+		);
+
+	if (chat.length === 0) throw new NotFoundException('Chat not found');
 
 	return chat;
 };
