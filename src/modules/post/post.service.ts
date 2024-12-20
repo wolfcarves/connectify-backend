@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { postImagesTable, postLikeTable, postTable } from '@/models/postTable';
-import type { audienceSchema, CreatePostInput } from './post.schema';
+import type { CreatePostInput } from './post.schema';
 import { db } from '@/db';
-import { and, desc, eq, inArray, ne, or, sql } from 'drizzle-orm';
+import { and, desc, eq, ne, or, sql } from 'drizzle-orm';
 import { bookmarkTable } from '@/models/bookmarkTable';
 import { usersTable } from '@/models/usersTable';
 import cloudinary from 'cloudinary';

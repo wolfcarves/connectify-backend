@@ -47,13 +47,12 @@ app.use(notFoundHandler);
 io.on('connection', socket => {
 	// console.log('User connected', socket.id);
 
-	socket.on('join_room', roomId => {
-		console.log('join_room', roomId);
-		socket.join(roomId);
+	socket.on('join_chat', chatId => {
+		socket.join(chatId);
 	});
 
 	socket.on('send_message', data => {
-		socket.to(data?.roomId).emit('receive_message', data.message);
+		socket.to(data?.chatId).emit('receive_message', data.content);
 	});
 
 	// socket.on('disconnect', () => {

@@ -15,7 +15,11 @@ chatDocumentation.getChatsDocs();
 ChatRouter.get('/', requireAuth, chatController.getChats);
 
 chatDocumentation.getChatMessagesDocs();
-ChatRouter.get('/:chatId', requireAuth, chatController.getChatMessages);
+ChatRouter.get(
+	'/messages/:chatId',
+	requireAuth,
+	chatController.getChatMessages,
+);
 
 chatDocumentation.sendMessageDocs();
 ChatRouter.post('/send/:chatId', requireAuth, chatController.sendMessage);

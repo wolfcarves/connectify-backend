@@ -126,6 +126,10 @@ export const getChatMessagesDocs = () => {
 			params: z.object({
 				chatId: z.number(),
 			}),
+			query: z.object({
+				page: z.number().optional(),
+				per_page: z.number().optional(),
+			}),
 		},
 		responses: {
 			200: {

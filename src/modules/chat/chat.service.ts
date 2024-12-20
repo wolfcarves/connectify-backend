@@ -9,7 +9,16 @@ import {
 	chatsTable,
 } from '@/models/chatTable';
 import { usersTable } from '@/models/usersTable';
-import { aliasedTable, and, count, eq, inArray, ne, sql } from 'drizzle-orm';
+import {
+	aliasedTable,
+	and,
+	count,
+	desc,
+	eq,
+	inArray,
+	ne,
+	sql,
+} from 'drizzle-orm';
 import { isChatExists, getChatId } from './chat.helper';
 
 export const createChat = async (userId: number, recipientId: number) => {
@@ -62,11 +71,9 @@ export const createChat = async (userId: number, recipientId: number) => {
 };
 
 export const getChat = async (userId: number, chatId: number) => {
-	console.log('chatId', chatId);
-
 	const chatMembersTable2 = aliasedTable(chatMembersTable, 'cm2');
 
-	const chat = await db
+	const [chat] = await db
 		.select({
 			id: chatMembersTable.user_id,
 			name: sql`
@@ -94,7 +101,7 @@ export const getChat = async (userId: number, chatId: number) => {
 			),
 		);
 
-	if (chat.length === 0) throw new NotFoundException('Chat not found');
+	if (!chat) throw new NotFoundException('Chat not found');
 
 	return chat;
 };
@@ -104,21 +111,6 @@ export const getChats = async (
 	page: number,
 	perPage: number,
 ) => {
-	const chatIds = await db
-		.select({
-			id: chatsTable.id,
-			count: count(chatsTable.id),
-		})
-		.from(chatsTable)
-		.innerJoin(
-			chatMembersTable,
-			eq(chatMembersTable.chat_id, chatsTable.id),
-		)
-		.where(eq(chatMembersTable.user_id, userId))
-		.groupBy(chatsTable.id);
-
-	const _chatIds = chatIds.map(c => c.id);
-
 	const chats = await db
 		.selectDistinctOn([chatsTable.id], {
 			id: chatsTable.id,
@@ -127,14 +119,22 @@ export const getChats = async (
 				CASE
 					WHEN ${chatsTable.name} IS NOT NULL
 					THEN ${chatsTable.name}
-					ELSE ${usersTable.name}
+					ELSE (
+						SELECT ${usersTable.name}
+						FROM ${usersTable}
+						INNER JOIN ${chatMembersTable}
+							ON ${usersTable.id} = ${chatMembersTable.user_id}
+						WHERE ${chatMembersTable.chat_id} = ${chatsTable.id}
+						AND ${usersTable.id} != ${userId}
+						LIMIT 1
+					)
 				END`,
 			latest_message: sql`
-					CASE
-						WHEN ${chatMessagesTable.sender_id} = ${userId}
-						THEN CONCAT('You: ', ${chatMessagesTable.content})
-						ELSE ${chatMessagesTable.content}
-					END`,
+				CASE
+					WHEN ${chatMessagesTable.sender_id} = ${userId}
+					THEN CONCAT('You: ', ${chatMessagesTable.content})
+					ELSE ${chatMessagesTable.content}
+				END`,
 			latest_message_at: chatMessagesTable.created_at,
 		})
 		.from(chatsTable)
@@ -143,12 +143,22 @@ export const getChats = async (
 			eq(chatMembersTable.chat_id, chatsTable.id),
 		)
 		.innerJoin(usersTable, eq(usersTable.id, chatMembersTable.user_id))
-		.innerJoin(
+		.leftJoin(
 			chatMessagesTable,
-			eq(chatMessagesTable.chat_id, chatsTable.id),
+			and(
+				eq(chatMessagesTable.chat_id, chatsTable.id),
+				eq(
+					chatMessagesTable.id,
+					sql`(
+                    SELECT MAX(${chatMessagesTable.id})
+                    FROM ${chatMessagesTable}
+                    WHERE ${chatMessagesTable.chat_id} = ${chatsTable.id}
+                )`,
+				),
+			),
 		)
-		.where(inArray(chatsTable.id, _chatIds))
-		.orderBy(chatsTable.id, chatsTable.created_at)
+		.where(eq(chatMembersTable.user_id, userId))
+		.orderBy(desc(chatsTable.id), desc(chatMessagesTable.created_at))
 		.limit(perPage)
 		.offset((page - 1) * perPage);
 
@@ -182,36 +192,80 @@ export const getChatMessages = async (
 	chatId: number,
 	page: number,
 	perPage: number,
-) => {};
+) => {
+	const messages = await db
+		.select({
+			id: chatMessagesTable.id,
+			is_own: eq(chatMessagesTable.sender_id, userId),
+			content: chatMessagesTable.content,
+			created_at: chatMessagesTable.created_at,
+			updated_at: chatMessagesTable.updated_at,
+		})
+		.from(chatMessagesTable)
+		.innerJoin(
+			chatMembersTable,
+			eq(chatMessagesTable.chat_id, chatMembersTable.chat_id),
+		)
+		.where(
+			and(
+				eq(chatMessagesTable.chat_id, chatId),
+				eq(chatMembersTable.user_id, userId),
+			),
+		)
+		.orderBy(desc(chatMessagesTable.created_at))
+		.limit(perPage)
+		.offset((page - 1) * perPage);
+
+	if (messages.length === 0) throw new NotFoundException('No messages');
+
+	const totalCount = await db
+		.select({ count: count(chatMessagesTable.id) })
+		.from(chatMessagesTable)
+		.where(eq(chatMessagesTable.chat_id, chatId))
+		.then(res => res[0].count);
+
+	const itemsTaken = page * perPage;
+	const remaining = totalCount - itemsTaken;
+
+	return {
+		messages,
+		total_items: totalCount,
+		remaining_items: Math.max(0, remaining),
+	};
+};
 
 export const sendMessage = async (
 	senderId: number,
 	chatId: number,
 	content: string,
 ) => {
-	try {
-		const exists = await isChatExists(chatId);
+	const isMember = await db
+		.select({ id: chatMembersTable.id })
+		.from(chatMembersTable)
+		.where(
+			and(
+				eq(chatMembersTable.chat_id, chatId),
+				eq(chatMembersTable.user_id, senderId),
+			),
+		)
+		.limit(1);
 
-		if (!chatId || !exists) throw new NotFoundException('Chat not found');
-
-		const [createdMessage] = await db
-			.insert(chatMessagesTable)
-			.values({
-				chat_id: chatId,
-				sender_id: senderId,
-				content,
-			})
-			.returning({ chatId: chatsTable.id });
-
-		return createdMessage;
-	} catch (error) {
-		// If recipientId is not found
-		if (error instanceof postgres.PostgresError) {
-			if (error.code === '23503') {
-				throw new NotFoundException('Chat not found');
-			}
-		}
-
-		throw error;
+	if (isMember.length === 0) {
+		throw new BadRequestException('You are not a member of this chat');
 	}
+
+	const newMessage = await db
+		.insert(chatMessagesTable)
+		.values({
+			sender_id: senderId,
+			chat_id: chatId,
+			content,
+			created_at: new Date(),
+			updated_at: new Date(),
+		})
+		.returning({
+			chat_id: chatMessagesTable.id,
+		});
+
+	return newMessage[0];
 };
