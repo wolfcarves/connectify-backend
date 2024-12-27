@@ -3,24 +3,13 @@ import { BadRequestException } from '@/exceptions/BadRequestException';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import { friendRequestsTable, friendshipsTable } from '@/models/friendsTable';
 import { usersTable } from '@/models/usersTable';
-import { and, desc, eq, isNull, ne, notExists, or, sql } from 'drizzle-orm';
+import { and, eq, or, sql } from 'drizzle-orm';
 import { type PostgresError } from 'postgres';
 import { applySameCityQuery, checkFriendStatus } from './friend.helper';
 import * as userService from '../user/user.service';
 
-/*
-
-	Process
-
-	* default query or base query for friend suggestions
-	* query function for fetching same city && prioritize real users
-	* query function for fetching users friends of friends. 
-	* 
-
-*/
-
 export const getFriendsSuggestions = async (userId: number) => {
-	const user = await userService.getUser({ userId });
+	const user = await userService.getUser({ userId, withPassword: false });
 
 	const query = sql.raw(`
 		WITH 
@@ -110,7 +99,7 @@ export const deleteFriendRequest = async (
 	userId: number,
 	requesterId: number,
 ) => {
-	if (!userId || !requesterId) {
+	if (!requesterId) {
 		throw new NotFoundException('User not found');
 	}
 

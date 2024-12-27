@@ -70,8 +70,7 @@ export const applySameCityQuery = (
 						WHEN u.city = '${city}' THEN 1 
 						ELSE 2 
 					END,
-					u.id
-					DESC
+					u.id DESC
 				LIMIT 50;
 					
 		`),

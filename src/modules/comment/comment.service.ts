@@ -17,7 +17,7 @@ export const addComment = async (
 ): Promise<{ id: number }> => {
 	const isPostExists = await checkPostExistence(postId);
 
-	if (!isPostExists) throw new NotFoundException('Resources not found');
+	if (!isPostExists) throw new NotFoundException('Resource not found');
 
 	return (
 		await db
@@ -48,7 +48,7 @@ export const getComments = async ({
 	const isPostExists = await checkPostExistence(postId);
 	const isCommentExists = await checkCommentExistence(commentId);
 	if (!isPostExists && !isCommentExists)
-		throw new NotFoundException('Resources not found');
+		throw new NotFoundException('Resource not found');
 
 	if (commentId) {
 		const _isCommentAssociatedWithPost =

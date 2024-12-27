@@ -27,6 +27,8 @@ export const postSchema = registry.register(
 		uuid: z.string(),
 		is_saved: z.boolean(),
 		is_liked: z.boolean(),
+		likes_count: z.number(),
+		comments_count: z.number(),
 		images: z.array(
 			z.object({
 				image: z.string(),

@@ -1,21 +1,31 @@
 import { db } from '@/db';
 import { friendshipsTable } from '@/models/friendsTable';
-import { postImagesTable, postLikeTable, postTable } from '@/models/postTable';
+import {
+	postCommentTable,
+	postImagesTable,
+	postLikeTable,
+	postTable,
+} from '@/models/postTable';
 import { bookmarkTable } from '@/models/bookmarkTable';
 import { usersTable } from '@/models/usersTable';
-import { and, desc, eq, ne, or, sql } from 'drizzle-orm';
+import { aliasedTable, and, count, desc, eq, ne, or, sql } from 'drizzle-orm';
 
-export const getFeedWorldPosts = async (
+export const getFeedDiscoverPosts = async (
 	userId: number,
 	page: number,
 	per_page: number,
 ) => {
 	const postsCount = (
 		await db
-			.select()
+			.select({
+				count: count(),
+			})
 			.from(postTable)
 			.where(eq(postTable.audience, 'public'))
-	).length;
+			.limit(1)
+	)?.[0].count;
+
+	const postLikeTable2 = aliasedTable(postLikeTable, 'pl2');
 
 	const posts = await db
 		.select({
@@ -38,6 +48,12 @@ export const getFeedWorldPosts = async (
 				),
 				is_liked: sql.raw(
 					'bool_or(post_likes.id IS NOT NULL) as is_liked',
+				),
+				likes_count: sql.raw(
+					`COUNT(DISTINCT pl2.id)::INTEGER AS new_likes_count`,
+				),
+				comments_count: sql.raw(
+					`COUNT(DISTINCT post_comments.id)::INTEGER AS comments_count`,
 				),
 			},
 			user: {
@@ -64,6 +80,8 @@ export const getFeedWorldPosts = async (
 				eq(postTable.id, postLikeTable.post_id),
 			),
 		)
+		.leftJoin(postLikeTable2, eq(postLikeTable2.post_id, postTable.id))
+		.leftJoin(postCommentTable, eq(postCommentTable.post_id, postTable.id))
 		.leftJoin(
 			friendshipsTable,
 			or(
@@ -79,10 +97,10 @@ export const getFeedWorldPosts = async (
 		)
 		// .having(sql.raw(`bool_or(friendships.id IS NOT NULL)`))
 		.where(eq(postTable.audience, 'public'))
+		.groupBy(postTable.id, usersTable.id)
 		.orderBy(desc(postTable.id))
 		.limit(per_page)
-		.offset((page - 1) * per_page)
-		.groupBy(postTable.id, usersTable.id);
+		.offset((page - 1) * per_page);
 
 	const itemsTaken = page * per_page;
 	const remaining = postsCount - itemsTaken;

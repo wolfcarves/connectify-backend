@@ -42,7 +42,7 @@ export const sendFriendRequestDocs = () => {
 		operationId: 'sendFriendRequest',
 		request: {
 			params: z.object({
-				receiverId: z.string(),
+				receiverId: z.number(),
 			}),
 		},
 		responses: {
@@ -68,7 +68,7 @@ export const cancelFriendRequestDocs = () => {
 		operationId: 'cancelFriendRequest',
 		request: {
 			params: z.object({
-				requesterId: z.string(),
+				requesterId: z.number(),
 			}),
 		},
 		responses: {
@@ -117,7 +117,7 @@ export const acceptFriendRequestDocs = () => {
 		operationId: 'acceptFriendRequest',
 		request: {
 			params: z.object({
-				friendId: z.string(),
+				friendId: z.number(),
 			}),
 		},
 		responses: {
@@ -170,7 +170,7 @@ export const unfriendUserDocs = () => {
 		operationId: 'unfriendUser',
 		request: {
 			params: z.object({
-				friendId: z.string(),
+				friendId: z.number(),
 			}),
 		},
 		responses: {
@@ -186,5 +186,4 @@ export const unfriendUserDocs = () => {
 			...serverErrorResponse,
 		},
 	});
-	
 };

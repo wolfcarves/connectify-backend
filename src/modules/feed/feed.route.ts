@@ -5,10 +5,14 @@ import * as FeedDocumentation from './feed.docs';
 
 const FeedRouter = express.Router();
 
-FeedDocumentation.getFeedWorldPosts();
-FeedRouter.get('/posts/world', requireAuth, FeedController.getFeedWorldPosts);
+FeedDocumentation.getFeedDiscoverPostsDocs();
+FeedRouter.get(
+	'/posts/discover',
+	requireAuth,
+	FeedController.getFeedWorldPosts,
+);
 
-FeedDocumentation.getFeedFriendsPosts();
+FeedDocumentation.getFeedFriendsPostsDocs();
 FeedRouter.get(
 	'/posts/friends',
 	requireAuth,

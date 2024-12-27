@@ -1,7 +1,12 @@
-import { postImagesTable, postLikeTable, postTable } from '@/models/postTable';
+import {
+	postCommentTable,
+	postImagesTable,
+	postLikeTable,
+	postTable,
+} from '@/models/postTable';
 import type { CreatePostInput } from './post.schema';
 import { db } from '@/db';
-import { and, desc, eq, ne, or, sql } from 'drizzle-orm';
+import { and, desc, eq, ne, or, sql, count, aliasedTable } from 'drizzle-orm';
 import { bookmarkTable } from '@/models/bookmarkTable';
 import { usersTable } from '@/models/usersTable';
 import cloudinary from 'cloudinary';
@@ -93,6 +98,17 @@ export const getAllUserPosts = async (
 	page: number,
 	per_page: number,
 ) => {
+	const postsCount = (
+		await db
+			.select({
+				count: count(),
+			})
+			.from(postTable)
+			.where(eq(postTable.audience, 'public'))
+	)?.[0].count;
+
+	const postLikeTable2 = aliasedTable(postLikeTable, 'pl2');
+
 	const posts = await db
 		.selectDistinctOn([postTable.id], {
 			post: {
@@ -114,6 +130,12 @@ export const getAllUserPosts = async (
 				),
 				is_liked: sql.raw(
 					'bool_or(post_likes.id IS NOT NULL) as is_liked',
+				),
+				likes_count: sql.raw(
+					`COUNT(DISTINCT pl2.id)::INTEGER AS new_likes_count`,
+				),
+				comments_count: sql.raw(
+					`COUNT(DISTINCT post_comments.id)::INTEGER AS comments_count`,
 				),
 			},
 			user: usersTable,
@@ -144,15 +166,26 @@ export const getAllUserPosts = async (
 				eq(postTable.id, postLikeTable.post_id),
 			),
 		)
+		.leftJoin(postLikeTable2, eq(postLikeTable2.post_id, postTable.id))
+		.leftJoin(postCommentTable, eq(postCommentTable.post_id, postTable.id))
 		.orderBy(desc(postTable.id))
 		.limit(per_page)
 		.offset((page - 1) * per_page)
 		.groupBy(postTable.id, usersTable.id);
 
-	return posts;
+	const itemsTaken = page * per_page;
+	const remaining = postsCount - itemsTaken;
+
+	return {
+		posts,
+		total_items: postsCount,
+		remaining_items: Math.max(0, remaining),
+	};
 };
 
 export const getUserPost = async (sessionUserId: number, uuid: string) => {
+	const postLikeTable2 = aliasedTable(postLikeTable, 'pl2');
+
 	const post = (
 		await db
 			.selectDistinctOn([postTable.id], {
@@ -175,6 +208,12 @@ export const getUserPost = async (sessionUserId: number, uuid: string) => {
 					),
 					is_liked: sql.raw(
 						'bool_or(post_likes.id IS NOT NULL) as is_liked',
+					),
+					likes_count: sql.raw(
+						`COUNT(DISTINCT pl2.id)::INTEGER AS new_likes_count`,
+					),
+					comments_count: sql.raw(
+						`COUNT(DISTINCT post_comments.id)::INTEGER AS comments_count`,
 					),
 				},
 				user: usersTable,
@@ -199,6 +238,11 @@ export const getUserPost = async (sessionUserId: number, uuid: string) => {
 					eq(postLikeTable.user_id, sessionUserId),
 					eq(postTable.id, postLikeTable.post_id),
 				),
+			)
+			.leftJoin(postLikeTable2, eq(postLikeTable2.post_id, postTable.id))
+			.leftJoin(
+				postCommentTable,
+				eq(postCommentTable.post_id, postTable.id),
 			)
 			.orderBy(desc(postTable.id))
 			.groupBy(postTable.id, usersTable.id)

@@ -44,22 +44,31 @@ export const getUserPosts = asyncHandler(
 		const sessionUserId = res.locals.user!.id;
 		const paramsUsername = req.params.username;
 
-		const page = Number(req.query.page) ?? 1;
-		const perPage = Number(req.query.per_page) ?? 10;
+		const page = Number(req.query.page) || 1;
+		const perPage = Number(req.query.per_page) || 10;
 
-		const user = await userService.getUser({ username: paramsUsername });
+		const user = await userService.getUser({
+			username: paramsUsername,
+			withPassword: false,
+		});
 
-		const posts = await postService.getAllUserPosts(
-			sessionUserId,
-			user.id,
-			page,
-			perPage,
-		);
+		const { posts, total_items, remaining_items } =
+			await postService.getAllUserPosts(
+				sessionUserId,
+				user.id,
+				page,
+				perPage,
+			);
 
 		if (posts.length === 0) throw new NotFoundException('No posts found');
 
 		res.status(200).json({
 			data: posts,
+			pagination: {
+				current_page: page,
+				total_items,
+				remaining_items,
+			},
 		});
 	},
 );

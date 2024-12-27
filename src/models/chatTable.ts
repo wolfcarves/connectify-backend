@@ -12,6 +12,7 @@ import { usersTable } from './usersTable';
 export const chatsTable = pgTable('chats', {
 	id: serial('id').primaryKey(),
 	name: varchar('name', { length: 255 }),
+	image: text('avatar'),
 	is_group: boolean('is_group').default(false),
 	created_at: timestamp('created_at').defaultNow(),
 	updated_at: timestamp('updated_at').defaultNow(),
@@ -45,6 +46,7 @@ export const chatMessagesTable = pgTable('chat_messages', {
 		onUpdate: 'cascade',
 	}),
 	content: text('content').notNull(),
+	is_seen: boolean('is_seen').default(false),
 	created_at: timestamp('created_at').defaultNow(),
 	updated_at: timestamp('updated_at').defaultNow(),
 });

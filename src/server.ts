@@ -19,6 +19,7 @@ import cloudinary from 'cloudinary';
 import { cloudinaryOptions } from './config/cloundinaryOptions';
 import { initializeSocketIO } from './lib/socket';
 import http from 'http';
+import { ChatMessage } from './modules/chat/chat.schema';
 
 const app = express();
 const server = http.createServer(app);
@@ -48,11 +49,13 @@ io.on('connection', socket => {
 	// console.log('User connected', socket.id);
 
 	socket.on('join_chat', chatId => {
+		console.log('User joined chat', chatId);
+
 		socket.join(chatId);
 	});
 
-	socket.on('send_message', data => {
-		socket.to(data?.chatId).emit('receive_message', data.content);
+	socket.on('send_message', (data: ChatMessage) => {
+		socket.to(String(data.chat_id)).emit('receive_message', data);
 	});
 
 	// socket.on('disconnect', () => {

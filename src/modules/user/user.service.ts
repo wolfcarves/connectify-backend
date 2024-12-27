@@ -19,7 +19,7 @@ export const getUser = async ({
 	email?: string;
 	withPassword: boolean;
 }) => {
-	const { city, is_bot, ...columns } = getTableColumns(usersTable);
+	const { ...columns } = getTableColumns(usersTable);
 
 	const user = (
 		await db

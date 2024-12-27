@@ -9,17 +9,8 @@ import {
 	chatsTable,
 } from '@/models/chatTable';
 import { usersTable } from '@/models/usersTable';
-import {
-	aliasedTable,
-	and,
-	count,
-	desc,
-	eq,
-	inArray,
-	ne,
-	sql,
-} from 'drizzle-orm';
-import { isChatExists, getChatId } from './chat.helper';
+import { aliasedTable, and, count, desc, eq, ne, sql } from 'drizzle-orm';
+import { getChatId } from './chat.helper';
 
 export const createChat = async (userId: number, recipientId: number) => {
 	try {
@@ -75,7 +66,8 @@ export const getChat = async (userId: number, chatId: number) => {
 
 	const [chat] = await db
 		.select({
-			id: chatMembersTable.user_id,
+			id: chatsTable.id,
+			user_id: chatMembersTable.user_id,
 			name: sql`
 				CASE
 					WHEN ${chatsTable.name} IS NOT NULL
@@ -114,27 +106,41 @@ export const getChats = async (
 	const chats = await db
 		.selectDistinctOn([chatsTable.id], {
 			id: chatsTable.id,
-			avatar: usersTable.avatar,
+			avatar: sql`
+						CASE
+							WHEN ${chatsTable.name} IS NOT NULL
+							THEN ${chatsTable.name}
+							ELSE (
+								SELECT ${usersTable.avatar}
+								FROM ${usersTable}
+								INNER JOIN ${chatMembersTable}
+									ON ${usersTable.id} = ${chatMembersTable.user_id}
+								WHERE ${chatMembersTable.chat_id} = ${chatsTable.id}
+								AND ${usersTable.id} != ${userId}
+								LIMIT 1
+							)
+						END
+				`,
 			name: sql`
-				CASE
-					WHEN ${chatsTable.name} IS NOT NULL
-					THEN ${chatsTable.name}
-					ELSE (
-						SELECT ${usersTable.name}
-						FROM ${usersTable}
-						INNER JOIN ${chatMembersTable}
-							ON ${usersTable.id} = ${chatMembersTable.user_id}
-						WHERE ${chatMembersTable.chat_id} = ${chatsTable.id}
-						AND ${usersTable.id} != ${userId}
-						LIMIT 1
-					)
-				END`,
+					CASE
+						WHEN ${chatsTable.name} IS NOT NULL
+						THEN ${chatsTable.name}
+						ELSE (
+							SELECT ${usersTable.name}
+							FROM ${usersTable}
+							INNER JOIN ${chatMembersTable}
+								ON ${usersTable.id} = ${chatMembersTable.user_id}
+							WHERE ${chatMembersTable.chat_id} = ${chatsTable.id}
+							AND ${usersTable.id} != ${userId}
+							LIMIT 1
+						)
+					END`,
 			latest_message: sql`
-				CASE
-					WHEN ${chatMessagesTable.sender_id} = ${userId}
-					THEN CONCAT('You: ', ${chatMessagesTable.content})
-					ELSE ${chatMessagesTable.content}
-				END`,
+								CASE
+									WHEN ${chatMessagesTable.sender_id} = ${userId}
+									THEN CONCAT('You: ', ${chatMessagesTable.content})
+									ELSE ${chatMessagesTable.content}
+								END`,
 			latest_message_at: chatMessagesTable.created_at,
 		})
 		.from(chatsTable)
@@ -143,7 +149,7 @@ export const getChats = async (
 			eq(chatMembersTable.chat_id, chatsTable.id),
 		)
 		.innerJoin(usersTable, eq(usersTable.id, chatMembersTable.user_id))
-		.leftJoin(
+		.innerJoin(
 			chatMessagesTable,
 			and(
 				eq(chatMessagesTable.chat_id, chatsTable.id),
@@ -157,7 +163,17 @@ export const getChats = async (
 				),
 			),
 		)
-		.where(eq(chatMembersTable.user_id, userId))
+		.where(
+			and(
+				eq(chatMembersTable.user_id, userId),
+				sql`
+				EXISTS (
+					SELECT 1
+					FROM ${chatMessagesTable}
+					WHERE ${chatMessagesTable.chat_id} = ${chatsTable.id}
+				)`,
+			),
+		)
 		.orderBy(desc(chatsTable.id), desc(chatMessagesTable.created_at))
 		.limit(perPage)
 		.offset((page - 1) * perPage);
@@ -196,7 +212,7 @@ export const getChatMessages = async (
 	const messages = await db
 		.select({
 			id: chatMessagesTable.id,
-			is_own: eq(chatMessagesTable.sender_id, userId),
+			sender_id: chatMessagesTable.sender_id,
 			content: chatMessagesTable.content,
 			created_at: chatMessagesTable.created_at,
 			updated_at: chatMessagesTable.updated_at,
@@ -239,6 +255,8 @@ export const sendMessage = async (
 	chatId: number,
 	content: string,
 ) => {
+	if (!content) throw new BadRequestException('Message is empty.');
+
 	const isMember = await db
 		.select({ id: chatMembersTable.id })
 		.from(chatMembersTable)
@@ -264,7 +282,7 @@ export const sendMessage = async (
 			updated_at: new Date(),
 		})
 		.returning({
-			chat_id: chatMessagesTable.id,
+			messageId: chatMessagesTable.id,
 		});
 
 	return newMessage[0];

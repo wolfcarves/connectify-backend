@@ -8,13 +8,13 @@ import { postSchema } from '../post/post.schema';
 import { userSchema } from '../user/user.schema';
 import { paginationResponseSchema } from '@/schema/responseSchema';
 
-export const getFeedWorldPosts = () => {
+export const getFeedDiscoverPostsDocs = () => {
 	registry.registerPath({
 		tags: ['Feed'],
 		method: 'get',
-		path: '/api/v1/feed/posts/world',
-		operationId: 'getFeedWorldPosts',
-		summary: 'Get Feed World Posts',
+		path: '/api/v1/feed/posts/discover',
+		operationId: 'getFeedDiscoverPosts',
+		summary: 'Get Feed Discover Posts',
 		request: {
 			query: z.object({
 				page: z.number().optional(),
@@ -44,7 +44,7 @@ export const getFeedWorldPosts = () => {
 	});
 };
 
-export const getFeedFriendsPosts = () => {
+export const getFeedFriendsPostsDocs = () => {
 	registry.registerPath({
 		tags: ['Feed'],
 		method: 'get',

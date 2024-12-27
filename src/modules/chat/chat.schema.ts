@@ -5,6 +5,7 @@ export const chatSchema = registry.register(
 	'Chat',
 	z.object({
 		id: z.number(),
+		user_id: z.number(),
 		avatar: z.string(),
 		name: z.string(),
 		latest_message: z.string(),
@@ -16,12 +17,15 @@ export const chatMessageSchema = registry.register(
 	'ChatMessage',
 	z.object({
 		id: z.number(),
+		sender_id: z.number(),
+		chat_id: z.number(),
 		content: z.string(),
-		is_own: z.boolean(),
 		created_at: z.string(),
 		updated_at: z.string(),
 	}),
 );
+
+export type ChatMessage = z.infer<typeof chatMessageSchema>;
 
 export const chatSendMessageInputSchema = registry.register(
 	'ChatSendMessageInput',
@@ -36,6 +40,6 @@ export const chatSendMessageInputSchema = registry.register(
 export const chatSendMessageResponseSchema = registry.register(
 	'ChatSendMessageResponse',
 	z.object({
-		chatId: z.number(),
+		messageId: z.number(),
 	}),
 );

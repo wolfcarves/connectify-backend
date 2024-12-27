@@ -10,7 +10,10 @@ import {
 	unauthorizedErrorResponse,
 	validationErrorResponse,
 } from '@/helper/commonErrorResponse';
-import { successResponseSchema } from '@/schema/responseSchema';
+import {
+	paginationResponseSchema,
+	successResponseSchema,
+} from '@/schema/responseSchema';
 import { z } from 'zod';
 import { userSchema } from '../user/user.schema';
 
@@ -114,6 +117,7 @@ export const getUserPostsDocs = () => {
 									user: userSchema,
 								}),
 							),
+							pagination: paginationResponseSchema,
 						}),
 					},
 				},
