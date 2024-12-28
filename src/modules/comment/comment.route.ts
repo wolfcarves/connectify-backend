@@ -5,10 +5,10 @@ import * as CommentDocumentation from './comment.docs';
 
 const CommentRouter = Router();
 
-CommentDocumentation.createPostCommentDocs();
+CommentDocumentation.createCommentDocs();
 CommentRouter.post('/', requireAuth, CommentController.createComment);
 
-CommentDocumentation.getPostCommentsDocs();
+CommentDocumentation.getCommentsDocs();
 CommentRouter.get('/', requireAuth, CommentController.getComments);
 
 export default CommentRouter;

@@ -8,4 +8,7 @@ const LikeRouter = Router();
 LikeDocumentation.likePostDocs();
 LikeRouter.post('/post/:postId', requireAuth, LikeController.likePost);
 
+LikeDocumentation.likeCommentDocs();
+LikeRouter.post('/comment/:commentId', requireAuth, LikeController.likeComment);
+
 export default LikeRouter;

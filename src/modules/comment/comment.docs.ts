@@ -8,7 +8,7 @@ import { paginationResponseSchema } from '@/schema/responseSchema';
 import { z } from 'zod';
 import { commentSchema } from './comment.schema';
 
-export const createPostCommentDocs = () => {
+export const createCommentDocs = () => {
 	registry.registerPath({
 		tags: ['Comment'],
 		method: 'post',
@@ -50,7 +50,7 @@ export const createPostCommentDocs = () => {
 	});
 };
 
-export const getPostCommentsDocs = () => {
+export const getCommentsDocs = () => {
 	registry.registerPath({
 		tags: ['Comment'],
 		method: 'get',

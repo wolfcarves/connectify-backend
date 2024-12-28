@@ -19,8 +19,10 @@ export const commentSchema = registry.register(
 			username: z.string(),
 		}),
 		content: z.string(),
+		is_liked: z.boolean(),
+		likes_count: z.number(),
 		replies_count: z.number(),
-		created_at: z.date(),
-		updated_at: z.date(),
+		created_at: z.string(),
+		updated_at: z.string(),
 	}),
 );

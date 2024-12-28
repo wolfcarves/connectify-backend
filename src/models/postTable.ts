@@ -84,6 +84,20 @@ export const postCommentTable = pgTable('post_comments', {
 	updated_at: timestamp('updated_at').defaultNow(),
 });
 
+export const postCommentLikeTable = pgTable('post_comment_likes', {
+	id: serial('id').notNull().primaryKey(),
+	user_id: integer('user_id')
+		.notNull()
+		.references(() => usersTable.id),
+	comment_id: integer('comment_id')
+		.notNull()
+		.references(() => postCommentTable.id, {
+			onDelete: 'cascade',
+		}),
+	created_at: timestamp('created_at').defaultNow().notNull(),
+	updated_at: timestamp('updated_at').$onUpdate(() => new Date()),
+});
+
 export const postShareTable = pgTable('post_shares', {
 	id: serial('id').primaryKey(),
 	user_id: integer('user_id')

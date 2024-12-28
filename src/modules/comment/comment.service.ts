@@ -1,6 +1,20 @@
-import { postCommentTable, postTable } from '@/models/postTable';
+import {
+	postCommentLikeTable,
+	postCommentTable,
+	postTable,
+} from '@/models/postTable';
 import { db } from '@/db';
-import { asc, eq, sql, aliasedTable, and, isNull, count } from 'drizzle-orm';
+import {
+	asc,
+	eq,
+	sql,
+	aliasedTable,
+	and,
+	isNull,
+	count,
+	isNotNull,
+	countDistinct,
+} from 'drizzle-orm';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import { usersTable } from '@/models/usersTable';
 import { checkPostExistence } from '../post/post.helper';
@@ -59,6 +73,10 @@ export const getComments = async ({
 	}
 
 	const postRepliesTable = aliasedTable(postCommentTable, 'post_replies');
+	const postCommentLikeTable2 = aliasedTable(
+		postCommentLikeTable,
+		'post_comment_likes_2',
+	);
 
 	const comments = await db
 		.select({
@@ -70,6 +88,8 @@ export const getComments = async ({
 				username: usersTable.username,
 			},
 			content: postCommentTable.content,
+			is_liked: isNotNull(postCommentLikeTable.id),
+			likes_count: countDistinct(postCommentLikeTable2.id),
 			replies_count: count(postRepliesTable.id),
 			created_at: postCommentTable.created_at,
 			updated_at: postCommentTable.updated_at,
@@ -87,10 +107,21 @@ export const getComments = async ({
 					),
 		)
 		.leftJoin(
+			postCommentLikeTable,
+			and(
+				eq(postCommentLikeTable.user_id, userId),
+				eq(postCommentLikeTable.comment_id, postCommentTable.id),
+			),
+		)
+		.leftJoin(
+			postCommentLikeTable2,
+			eq(postCommentLikeTable2.comment_id, postCommentTable.id),
+		)
+		.leftJoin(
 			postRepliesTable,
 			commentId
-				? eq(postCommentTable.id, postRepliesTable.comment_id)
-				: eq(postCommentTable.id, postRepliesTable.comment_id),
+				? eq(postRepliesTable.comment_id, postCommentTable.id)
+				: eq(postRepliesTable.comment_id, postCommentTable.id),
 		)
 		.innerJoin(postTable, eq(postCommentTable.post_id, postTable.id))
 		.innerJoin(usersTable, eq(postCommentTable.user_id, usersTable.id))
@@ -98,7 +129,7 @@ export const getComments = async ({
 			sql`CASE WHEN ${postCommentTable.user_id} = ${userId} THEN 0 ELSE 1 END`,
 			asc(postCommentTable.created_at),
 		)
-		.groupBy(usersTable.id, postCommentTable.id)
+		.groupBy(usersTable.id, postCommentTable.id, postCommentLikeTable.id)
 		.offset((page - 1) * perPage)
 		.limit(perPage);
 
