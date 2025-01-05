@@ -42,7 +42,7 @@ export const unauthorizedErrorResponse = {
 };
 
 export const forbiddenErrorResponse = {
-	401: {
+	403: {
 		description: 'Forbidden',
 		content: {
 			'application/json': {

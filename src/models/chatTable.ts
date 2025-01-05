@@ -6,6 +6,7 @@ import {
 	timestamp,
 	varchar,
 	text,
+	unique,
 } from 'drizzle-orm/pg-core';
 import { usersTable } from './usersTable';
 
@@ -46,7 +47,36 @@ export const chatMessagesTable = pgTable('chat_messages', {
 		onUpdate: 'cascade',
 	}),
 	content: text('content').notNull(),
-	is_seen: boolean('is_seen').default(false),
+	is_edited: boolean('is_edited').default(false),
 	created_at: timestamp('created_at').defaultNow(),
 	updated_at: timestamp('updated_at').defaultNow(),
 });
+
+export const chatMessageReadsTable = pgTable(
+	'chat_messages_read',
+	{
+		id: serial('id').primaryKey(),
+		chat_id: integer('chat_id')
+			.references(() => chatsTable.id, {
+				onUpdate: 'cascade',
+				onDelete: 'cascade',
+			})
+			.notNull(),
+		message_id: integer('message_id')
+			.references(() => chatMessagesTable.id, {
+				onDelete: 'cascade',
+				onUpdate: 'cascade',
+			})
+			.notNull(),
+		user_id: integer('user_id')
+			.references(() => usersTable.id, {
+				onDelete: 'cascade',
+				onUpdate: 'cascade',
+			})
+			.notNull(),
+		read_at: timestamp('read_at').notNull().defaultNow(),
+	},
+	t => ({
+		readUnq: unique('readUnq').on(t.chat_id, t.user_id),
+	}),
+);

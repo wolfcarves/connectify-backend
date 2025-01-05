@@ -46,21 +46,23 @@ app.use(errorHandler);
 app.use(notFoundHandler);
 
 io.on('connection', socket => {
-	// console.log('User connected', socket.id);
+	console.log('User connected', socket.id);
 
 	socket.on('join_chat', chatId => {
-		console.log('User joined chat', chatId);
-
 		socket.join(chatId);
+	});
+
+	socket.on('leave_chat', chatId => {
+		socket.leave(chatId);
 	});
 
 	socket.on('send_message', (data: ChatMessage) => {
 		socket.to(String(data.chat_id)).emit('receive_message', data);
 	});
 
-	// socket.on('disconnect', () => {
-	// 	console.log('User disconnected');
-	// });
+	socket.on('disconnect', () => {
+		console.log('User disconnected');
+	});
 });
 
 server.listen(port, '0.0.0.0', () => {

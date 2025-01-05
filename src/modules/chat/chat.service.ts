@@ -5,11 +5,22 @@ import { NotFoundException } from '@/exceptions/NotFoundException';
 import { ForbiddenException } from '@/exceptions/ForbiddenException';
 import {
 	chatMembersTable,
+	chatMessageReadsTable,
 	chatMessagesTable,
 	chatsTable,
 } from '@/models/chatTable';
 import { usersTable } from '@/models/usersTable';
-import { aliasedTable, and, count, desc, eq, ne, sql } from 'drizzle-orm';
+import {
+	aliasedTable,
+	and,
+	count,
+	desc,
+	eq,
+	isNotNull,
+	ne,
+	or,
+	sql,
+} from 'drizzle-orm';
 import { getChatId } from './chat.helper';
 
 export const createChat = async (userId: number, recipientId: number) => {
@@ -104,6 +115,211 @@ export const getChats = async (
 	perPage: number,
 ) => {
 	const chats = await db
+		.select({
+			id: chatMembersTable.chat_id,
+			avatar: usersTable.avatar,
+			name: usersTable.name,
+			is_read: sql`CASE
+							WHEN ${chatMessageReadsTable.user_id} = ${userId}
+								AND ${chatMessageReadsTable.message_id} = ${chatMessagesTable.id}
+							THEN TRUE
+							ELSE FALSE
+						END`.as('is_read'),
+			latest_message: chatMessagesTable.content,
+			latest_message_at: chatMessagesTable.created_at,
+		})
+		.from(chatMembersTable)
+		.innerJoin(usersTable, eq(usersTable.id, chatMembersTable.user_id))
+		.leftJoin(
+			chatMessageReadsTable,
+			and(
+				eq(chatMessageReadsTable.chat_id, chatMembersTable.chat_id),
+				eq(chatMessageReadsTable.user_id, userId),
+			),
+		)
+		.leftJoin(
+			chatMessagesTable,
+			and(
+				eq(chatMessagesTable.chat_id, chatMembersTable.chat_id),
+				sql`${chatMessagesTable.id} = (
+					SELECT MAX(id)
+					FROM ${chatMessagesTable}
+					WHERE chat_id = ${chatMembersTable.chat_id}
+				)`,
+			),
+		)
+		.where(
+			and(
+				sql`${chatMembersTable.chat_id} IN (
+					SELECT chat_id
+					FROM ${chatMembersTable}
+					WHERE user_id = ${userId}
+				)`,
+				ne(chatMembersTable.user_id, userId),
+			),
+		)
+		.orderBy(desc(chatMessagesTable.created_at))
+		.limit(perPage)
+		.offset((page - 1) * perPage);
+
+	if (chats.length === 0) throw new NotFoundException('No chats');
+
+	const totalCount = (
+		await db
+			.select({
+				count: count(chatsTable.id),
+			})
+			.from(chatsTable)
+			.innerJoin(
+				chatMembersTable,
+				eq(chatMembersTable.chat_id, chatsTable.id),
+			)
+			.where(eq(chatMembersTable.user_id, userId))
+	)[0].count;
+
+	const itemsTaken = chats.length;
+	const remaining = totalCount - itemsTaken;
+
+	return {
+		chats,
+		total_items: totalCount,
+		remaining_items: Math.max(0, remaining),
+	};
+};
+
+export const getChatMessages = async (
+	userId: number,
+	chatId: number,
+	page: number,
+	perPage: number,
+) => {
+	const messages = await db.transaction(async tx => {
+		const messagesResult = await tx
+			.select({
+				id: chatMessagesTable.id,
+				sender_id: chatMessagesTable.sender_id,
+				content: chatMessagesTable.content,
+				created_at: chatMessagesTable.created_at,
+				updated_at: chatMessagesTable.updated_at,
+			})
+			.from(chatMessagesTable)
+			.innerJoin(
+				chatMembersTable,
+				eq(chatMessagesTable.chat_id, chatMembersTable.chat_id),
+			)
+			.where(
+				and(
+					eq(chatMessagesTable.chat_id, chatId),
+					eq(chatMembersTable.user_id, userId),
+				),
+			)
+			.orderBy(desc(chatMessagesTable.created_at))
+			.limit(perPage)
+			.offset((page - 1) * perPage);
+
+		const latestMessage = messagesResult[0];
+
+		if (latestMessage) {
+			const values = {
+				chat_id: chatId,
+				message_id: latestMessage.id,
+				user_id: userId,
+			};
+
+			await tx
+				.insert(chatMessageReadsTable)
+				.values(values)
+				.onConflictDoUpdate({
+					target: [
+						chatMessageReadsTable.chat_id,
+						chatMessageReadsTable.user_id,
+					],
+					set: values,
+				});
+		}
+
+		return messagesResult;
+	});
+
+	if (messages.length === 0) throw new NotFoundException('No messages');
+
+	const totalCount = await db
+		.select({ count: count(chatMessagesTable.id) })
+		.from(chatMessagesTable)
+		.where(eq(chatMessagesTable.chat_id, chatId))
+		.then(res => res[0].count);
+
+	const itemsTaken = page * perPage;
+	const remaining = totalCount - itemsTaken;
+
+	return {
+		messages,
+		total_items: totalCount,
+		remaining_items: Math.max(0, remaining),
+	};
+};
+
+export const sendMessage = async (
+	senderId: number,
+	chatId: number,
+	content: string,
+) => {
+	if (!content) throw new BadRequestException('Message is empty.');
+
+	const isMember = await db
+		.select({ id: chatMembersTable.id })
+		.from(chatMembersTable)
+		.where(
+			and(
+				eq(chatMembersTable.chat_id, chatId),
+				eq(chatMembersTable.user_id, senderId),
+			),
+		)
+		.limit(1);
+
+	if (isMember.length === 0) {
+		throw new BadRequestException('You are not a member of this chat');
+	}
+
+	const newMessage = await db.transaction(async tx => {
+		const newMessageResult = await tx
+			.insert(chatMessagesTable)
+			.values({
+				sender_id: senderId,
+				chat_id: chatId,
+				content,
+				created_at: new Date(),
+				updated_at: new Date(),
+			})
+			.returning({
+				messageId: chatMessagesTable.id,
+			});
+
+		const values = {
+			chat_id: chatId,
+			message_id: newMessageResult[0].messageId,
+			user_id: senderId,
+		};
+
+		await tx
+			.insert(chatMessageReadsTable)
+			.values(values)
+			.onConflictDoUpdate({
+				target: [
+					chatMessageReadsTable.chat_id,
+					chatMessageReadsTable.user_id,
+				],
+				set: values,
+			});
+
+		return newMessageResult[0];
+	});
+
+	return newMessage;
+};
+
+/*
+const chats = await db
 		.selectDistinctOn([chatsTable.id], {
 			id: chatsTable.id,
 			avatar: sql`
@@ -177,113 +393,4 @@ export const getChats = async (
 		.orderBy(desc(chatsTable.id), desc(chatMessagesTable.created_at))
 		.limit(perPage)
 		.offset((page - 1) * perPage);
-
-	if (chats.length === 0) throw new NotFoundException('No chats');
-
-	const totalCount = (
-		await db
-			.select({
-				count: count(chatsTable.id),
-			})
-			.from(chatsTable)
-			.innerJoin(
-				chatMembersTable,
-				eq(chatMembersTable.chat_id, chatsTable.id),
-			)
-			.where(eq(chatMembersTable.user_id, userId))
-	)[0].count;
-
-	const itemsTaken = chats.length;
-	const remaining = totalCount - itemsTaken;
-
-	return {
-		chats,
-		total_items: totalCount,
-		remaining_items: Math.max(0, remaining),
-	};
-};
-
-export const getChatMessages = async (
-	userId: number,
-	chatId: number,
-	page: number,
-	perPage: number,
-) => {
-	const messages = await db
-		.select({
-			id: chatMessagesTable.id,
-			sender_id: chatMessagesTable.sender_id,
-			content: chatMessagesTable.content,
-			created_at: chatMessagesTable.created_at,
-			updated_at: chatMessagesTable.updated_at,
-		})
-		.from(chatMessagesTable)
-		.innerJoin(
-			chatMembersTable,
-			eq(chatMessagesTable.chat_id, chatMembersTable.chat_id),
-		)
-		.where(
-			and(
-				eq(chatMessagesTable.chat_id, chatId),
-				eq(chatMembersTable.user_id, userId),
-			),
-		)
-		.orderBy(desc(chatMessagesTable.created_at))
-		.limit(perPage)
-		.offset((page - 1) * perPage);
-
-	if (messages.length === 0) throw new NotFoundException('No messages');
-
-	const totalCount = await db
-		.select({ count: count(chatMessagesTable.id) })
-		.from(chatMessagesTable)
-		.where(eq(chatMessagesTable.chat_id, chatId))
-		.then(res => res[0].count);
-
-	const itemsTaken = page * perPage;
-	const remaining = totalCount - itemsTaken;
-
-	return {
-		messages,
-		total_items: totalCount,
-		remaining_items: Math.max(0, remaining),
-	};
-};
-
-export const sendMessage = async (
-	senderId: number,
-	chatId: number,
-	content: string,
-) => {
-	if (!content) throw new BadRequestException('Message is empty.');
-
-	const isMember = await db
-		.select({ id: chatMembersTable.id })
-		.from(chatMembersTable)
-		.where(
-			and(
-				eq(chatMembersTable.chat_id, chatId),
-				eq(chatMembersTable.user_id, senderId),
-			),
-		)
-		.limit(1);
-
-	if (isMember.length === 0) {
-		throw new BadRequestException('You are not a member of this chat');
-	}
-
-	const newMessage = await db
-		.insert(chatMessagesTable)
-		.values({
-			sender_id: senderId,
-			chat_id: chatId,
-			content,
-			created_at: new Date(),
-			updated_at: new Date(),
-		})
-		.returning({
-			messageId: chatMessagesTable.id,
-		});
-
-	return newMessage[0];
-};
+*/

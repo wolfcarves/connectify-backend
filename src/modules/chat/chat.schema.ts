@@ -10,6 +10,7 @@ export const chatSchema = registry.register(
 		name: z.string(),
 		latest_message: z.string(),
 		latest_message_at: z.string(),
+		is_read: z.boolean(),
 	}),
 );
 

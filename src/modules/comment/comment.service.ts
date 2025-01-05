@@ -14,6 +14,7 @@ import {
 	count,
 	isNotNull,
 	countDistinct,
+	desc,
 } from 'drizzle-orm';
 import { NotFoundException } from '@/exceptions/NotFoundException';
 import { usersTable } from '@/models/usersTable';
@@ -28,7 +29,12 @@ export const addComment = async (
 	postId: number | undefined,
 	commentId: number | undefined,
 	content: string,
-): Promise<{ id: number }> => {
+): Promise<{
+	id: number;
+	post_id: number | null;
+	comment_id: number | null;
+	content: string;
+}> => {
 	const isPostExists = await checkPostExistence(postId);
 
 	if (!isPostExists) throw new NotFoundException('Resource not found');
@@ -42,7 +48,12 @@ export const addComment = async (
 				comment_id: commentId || null,
 				content,
 			})
-			.returning({ id: postCommentTable.id })
+			.returning({
+				id: postCommentTable.id,
+				post_id: postCommentTable.post_id,
+				comment_id: postCommentTable.comment_id,
+				content: postCommentTable.content,
+			})
 	)[0];
 };
 
@@ -127,7 +138,7 @@ export const getComments = async ({
 		.innerJoin(usersTable, eq(postCommentTable.user_id, usersTable.id))
 		.orderBy(
 			sql`CASE WHEN ${postCommentTable.user_id} = ${userId} THEN 0 ELSE 1 END`,
-			asc(postCommentTable.created_at),
+			desc(postCommentTable.created_at),
 		)
 		.groupBy(usersTable.id, postCommentTable.id, postCommentLikeTable.id)
 		.offset((page - 1) * perPage)
