@@ -119,13 +119,19 @@ export const getChats = async (
 			id: chatMembersTable.chat_id,
 			avatar: usersTable.avatar,
 			name: usersTable.name,
-			is_read: sql`CASE
-							WHEN ${chatMessageReadsTable.user_id} = ${userId}
-								AND ${chatMessageReadsTable.message_id} = ${chatMessagesTable.id}
-							THEN TRUE
-							ELSE FALSE
-						END`.as('is_read'),
-			latest_message: chatMessagesTable.content,
+			is_read: sql`
+					CASE
+						WHEN ${chatMessageReadsTable.user_id} = ${userId}
+						AND ${chatMessageReadsTable.message_id} = ${chatMessagesTable.id}
+						THEN TRUE
+						ELSE FALSE
+					END`.as('is_read'),
+			latest_message: sql`
+					CASE
+						WHEN ${chatMessagesTable.sender_id} = ${userId}
+						THEN CONCAT('You: ', ${chatMessagesTable.content})
+						ELSE ${chatMessagesTable.content}
+					END`,
 			latest_message_at: chatMessagesTable.created_at,
 		})
 		.from(chatMembersTable)
@@ -217,25 +223,27 @@ export const getChatMessages = async (
 			.limit(perPage)
 			.offset((page - 1) * perPage);
 
-		const latestMessage = messagesResult[0];
+		if (page === 1) {
+			const latestMessageId = messagesResult[0].id;
 
-		if (latestMessage) {
-			const values = {
-				chat_id: chatId,
-				message_id: latestMessage.id,
-				user_id: userId,
-			};
+			if (latestMessageId) {
+				const values = {
+					chat_id: chatId,
+					message_id: latestMessageId,
+					user_id: userId,
+				};
 
-			await tx
-				.insert(chatMessageReadsTable)
-				.values(values)
-				.onConflictDoUpdate({
-					target: [
-						chatMessageReadsTable.chat_id,
-						chatMessageReadsTable.user_id,
-					],
-					set: values,
-				});
+				await tx
+					.insert(chatMessageReadsTable)
+					.values(values)
+					.onConflictDoUpdate({
+						target: [
+							chatMessageReadsTable.chat_id,
+							chatMessageReadsTable.user_id,
+						],
+						set: values,
+					});
+			}
 		}
 
 		return messagesResult;

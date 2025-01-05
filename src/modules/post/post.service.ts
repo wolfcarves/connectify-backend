@@ -33,13 +33,15 @@ export const addPost = async (
 						user_id: userId,
 						content,
 						audience,
+						created_at: new Date(),
+						updated_at: new Date(),
 					})
 					.returning({ id: postTable.id, uuid: postTable.uuid });
 
 				postUUID = post.uuid;
 
 				const imagesToUpload = files.map(
-					(file: Express.Multer.File, idx: number) => {
+					(file: Express.Multer.File) => {
 						return limit(async () => {
 							await cloudinary.v2.uploader
 								.upload(file.path, {
