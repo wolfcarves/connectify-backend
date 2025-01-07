@@ -5,7 +5,6 @@ import {
 } from '@/models/postTable';
 import { db } from '@/db';
 import {
-	asc,
 	eq,
 	sql,
 	aliasedTable,
@@ -47,11 +46,13 @@ export const addComment = async (
 				post_id: postId,
 				comment_id: commentId || null,
 				content,
+				created_at: new Date(),
+				updated_at: new Date(),
 			})
 			.returning({
 				id: postCommentTable.id,
 				post_id: postCommentTable.post_id,
-				comment_id: postCommentTable.comment_id,
+				comment_id: postCommentTable.id,
 				content: postCommentTable.content,
 			})
 	)[0];
@@ -151,7 +152,7 @@ export const getComments = async ({
 	if (postId)
 		totalCount = (
 			await db
-				.select()
+				.select({ count: count() })
 				.from(postCommentTable)
 				.where(
 					and(
@@ -159,15 +160,17 @@ export const getComments = async ({
 						isNull(postCommentTable.comment_id),
 					),
 				)
-		).length;
+		)[0].count;
 
 	if (commentId)
 		totalCount = (
 			await db
-				.select()
+				.select({
+					count: count(),
+				})
 				.from(postCommentTable)
 				.where(eq(postCommentTable.comment_id, commentId))
-		).length;
+		)[0].count;
 
 	const itemsTaken = page * perPage;
 	const remaining = totalCount - itemsTaken;
